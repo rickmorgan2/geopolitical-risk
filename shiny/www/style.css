@@ -1,0 +1,1095 @@
+/* ============================================================
+   Pressure Points — dashboard styles
+   Body: Work Sans  |  Labels/Headers: Oswald
+   ============================================================ */
+
+/* === DESIGN TOKENS ======================================================== */
+:root {
+  /* Brand palette */
+  --brand-primary:    #2B4C6F;
+  --brand-secondary:  #859C72;
+  --brand-grey:       #6A7381;
+  --brand-bg:         #D8DEE5;
+  --brand-accent:     #C17B5A;
+  --brand-dark-blue:  #1C2E44;
+  --brand-light-blue: #6B8CAE;
+  --brand-vis-1:      #5D8FA3;
+  --brand-vis-2:      #8B9C6B;
+  --brand-vis-3:      #C4A563;
+  --brand-vis-4:      #B8795E;
+  --brand-teal:       #5BBFA3;
+  --brand-slate:      #4A7C8C;
+
+  /* Tier colors */
+  --tier-critical: #8B2635;
+  --tier-elevated: #C17B5A;
+  --tier-guarded:  #C4A563;
+  --tier-moderate: #5D8FA3;
+  --tier-low:      #859C72;
+
+  /* Shadow scale */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-lg:  0 4px 16px rgba(0,0,0,0.11), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-card-hover: 0 4px 14px rgba(43,76,111,0.15), 0 2px 5px rgba(0,0,0,0.07);
+  --shadow-card-active: 0 4px 16px rgba(193,123,90,0.22), 0 2px 6px rgba(0,0,0,0.08);
+
+  /* Layout */
+  --max-w:      1380px;
+  --min-w:      940px;
+  --inner-pad:  0 24px;
+  --radius:     5px;
+  --topbar-bg:  #ffffff;
+  --border-col: #c8d0db;
+}
+
+/* === RESET & BASE ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  font-family:      'Work Sans', sans-serif;
+  background-color: var(--brand-bg);
+  color:            #2E3338;
+  font-size:        0.93rem;
+  margin:           0;
+  padding:          0;
+}
+
+/* Remove fluidPage default gutters */
+.container-fluid {
+  padding-left:  0 !important;
+  padding-right: 0 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family:    'Oswald', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+a { color: var(--brand-primary); }
+a:hover { color: var(--brand-accent); text-decoration: none; }
+
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--brand-bg); }
+::-webkit-scrollbar-thumb { background: #b0bbc7; border-radius: 3px; }
+
+/* === TOPBAR (STICKY HEADER) =============================================== */
+
+.report-topbar {
+  background:    var(--topbar-bg);
+  border-bottom: 3px solid var(--brand-primary);
+  box-shadow:    0 2px 12px rgba(0,0,0,0.10);
+  position:      sticky;
+  top:           0;
+  z-index:       500;
+  width:         100%;
+}
+
+/* Width-constrained inner wrapper for all topbar rows */
+.topbar-inner {
+  max-width: var(--max-w);
+  min-width: var(--min-w);
+  margin:    0 auto;
+  padding:   8px 20px 0;
+}
+
+/* Row 1: logo + country selector + about link */
+.topbar-row {
+  display:         flex;
+  align-items:     center;
+  gap:             14px;
+  padding-bottom:  10px;
+  border-bottom:   1px solid #eaecf0;
+}
+
+.topbar-logo {
+  height:     34px;
+  width:      auto;
+  flex-shrink: 0;
+  filter:     drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+}
+
+.topbar-selector {
+  flex:      1;
+  max-width: 280px;
+}
+
+.topbar-selector .form-group { margin-bottom: 0; }
+
+.topbar-selector .selectize-input {
+  border-radius:  var(--radius);
+  font-family:    'Work Sans', sans-serif;
+  font-size:      0.88em;
+  min-height:     32px;
+  padding:        4px 10px;
+  border-color:   var(--border-col);
+  box-shadow:     var(--shadow-sm);
+}
+
+.topbar-right { margin-left: auto; }
+
+.about-link {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.78em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+  padding:        5px 12px;
+  border:         1px solid var(--border-col);
+  border-radius:  var(--radius);
+  transition:     all 0.15s;
+  white-space:    nowrap;
+}
+
+.about-link:hover {
+  color:            var(--brand-primary);
+  border-color:     var(--brand-light-blue);
+  background-color: #f0f4f8;
+}
+
+/* Row 2: country flag + name + meta */
+.country-header {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  padding:     10px 0 8px;
+}
+
+.country-flag {
+  height:        36px;
+  width:         auto;
+  border-radius: 2px;
+  box-shadow:    var(--shadow-sm);
+  flex-shrink:   0;
+}
+
+.country-name {
+  font-family:    'Oswald', sans-serif;
+  font-size:      1.45em;
+  color:          var(--brand-dark-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height:    1.1;
+}
+
+.country-meta {
+  font-size:  0.76em;
+  color:      var(--brand-grey);
+  margin-top: 2px;
+}
+
+/* Economy KPI + sparkline strip — Bootstrap grid row wrapper */
+.econ-kpis-row {
+  margin-bottom: 16px;
+}
+
+/* Remove Bootstrap's default column padding so cards butt up consistently */
+.econ-kpis-row .row { margin-left: -6px; margin-right: -6px; }
+.econ-kpis-row [class*="col-"] { padding-left: 6px; padding-right: 6px; }
+
+/* Numerical KPI card fills its Bootstrap column */
+.kpi-nums-card {
+  width:          100%;
+  padding:        12px 14px;
+  display:        flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap:            2px;
+  box-shadow:     var(--shadow-sm);
+}
+
+.kpi-num-row { display: flex; flex-direction: column; gap: 1px; }
+
+.kpi-num-value {
+  font-family: 'Oswald', sans-serif;
+  font-size:   1.15em;
+  color:       var(--brand-dark-blue);
+  line-height: 1.1;
+}
+
+.kpi-num-label {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.78em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+}
+
+.kpi-num-divider {
+  height:     1px;
+  background: #edf1f6;
+  margin:     6px 0;
+}
+
+/* Mini chart card (cards 2-5 in the KPI row) */
+.sparkline-card {
+  width:      100%;
+  padding:    6px 6px 2px;
+  box-shadow: var(--shadow-sm);
+}
+
+.sparkline-card .panel-title {
+  font-size:      0.68em;
+  margin-bottom:  2px;
+  padding-bottom: 3px;
+  border-bottom:  1px solid #edf1f6;
+  white-space:    nowrap;
+}
+
+/* Row 4: score cards */
+.score-cards-row {
+  display:        flex;
+  gap:            8px;
+  padding:        10px 0;
+  border-top:     1px solid #eaecf0;
+}
+
+/* === SCORE CARDS ========================================================== */
+
+.score-card {
+  flex:          1;
+  background:    #ffffff;
+  border:        1px solid var(--border-col);
+  border-left:   3px solid var(--brand-primary);
+  border-radius: var(--radius);
+  padding:       10px 12px;
+  cursor:        pointer;
+  transition:    border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  user-select:   none;
+  min-width:     0;
+  box-shadow:    var(--shadow-sm);
+}
+
+.score-card:hover {
+  border-color: var(--brand-light-blue);
+  box-shadow:   var(--shadow-card-hover);
+}
+
+.score-card-active {
+  border-left-color: var(--brand-accent) !important;
+  border-color:      var(--brand-accent) !important;
+  background:        #fffbf8 !important;
+  box-shadow:        var(--shadow-card-active) !important;
+}
+
+/* Overall / composite score card */
+.score-card-overall {
+  flex:       0 0 auto;
+  min-width:  130px;
+  text-align: center;
+}
+
+.overall-score {
+  font-family:   'Oswald', sans-serif;
+  font-size:     1.75em;
+  color:         var(--brand-primary);
+  line-height:   1;
+  margin:        5px 0 4px;
+}
+
+.overall-label {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.62em;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+  margin-bottom:  2px;
+}
+
+.score-card-label {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.65em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color:          var(--brand-primary);
+  line-height:    1.2;
+  margin-bottom:  5px;
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+}
+
+.score-card-active .score-card-label { color: var(--brand-accent); }
+
+.score-card-value {
+  font-family:   'Oswald', sans-serif;
+  font-size:     1.5em;
+  line-height:   1;
+  margin-bottom: 6px;
+}
+
+.score-bar-wrap {
+  background:    #edf1f6;
+  border-radius: 2px;
+  height:        5px;
+  overflow:      hidden;
+}
+
+.score-bar-fill {
+  height:        100%;
+  border-radius: 2px;
+  transition:    width 0.45s ease;
+}
+
+/* === MAIN CONTENT AREA ==================================================== */
+
+.app-main {
+  max-width: var(--max-w);
+  min-width: var(--min-w);
+  margin:    0 auto;
+  padding:   0 16px;
+}
+
+.tab-body { padding-top: 6px; }
+
+/* Bootstrap row override for consistent gutter */
+.tab-body .row { margin-left: -5px; margin-right: -5px; }
+.tab-body .row > [class*="col-"] { padding-left: 5px; padding-right: 5px; }
+
+/* === PANEL CARDS ========================================================== */
+
+.panel-card {
+  background:    #ffffff;
+  border-radius: var(--radius);
+  border:        1px solid var(--border-col);
+  padding:       8px 12px;
+  margin-bottom: 8px;
+  box-shadow:    var(--shadow-md);
+}
+
+/* Title row with optional right-aligned badge */
+.panel-title-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   4px;
+  padding-bottom:  4px;
+  border-bottom:   1px solid #dde4ec;
+}
+
+.panel-title {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.75em;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color:          var(--brand-primary);
+  margin-bottom:  4px;
+  padding-bottom: 4px;
+  border-bottom:  1px solid #dde4ec;
+}
+
+/* When .panel-title is inside .panel-title-row, suppress its own border */
+.panel-title-row .panel-title {
+  margin-bottom:  0;
+  padding-bottom: 0;
+  border-bottom:  none;
+}
+
+/* AI-generated badge */
+.ai-badge {
+  font-family:    'Work Sans', sans-serif;
+  font-size:      0.72em;
+  color:          var(--brand-grey);
+  background:     #f0f4f8;
+  border:         1px solid var(--border-col);
+  border-radius:  20px;
+  padding:        2px 9px;
+  letter-spacing: 0.02em;
+  white-space:    nowrap;
+}
+
+/* === NARRATIVE ============================================================ */
+
+.narrative-panel { min-height: unset; }
+
+/* Static intro always visible above everything */
+.narrative-intro {
+  font-size:      0.86em;
+  color:          var(--brand-grey);
+  font-style:     italic;
+  margin:         8px 0 10px;
+  padding-bottom: 10px;
+  border-bottom:  1px solid #edf1f6;
+}
+
+/* First paragraph preview — always visible */
+.narrative-preview {
+  font-size:   0.90em;
+  line-height: 1.78;
+  color:       #2E3338;
+  margin:      8px 0 0;
+}
+
+/* Collapsible body — paragraphs 2+ */
+.narrative-body {
+  max-height: 0;
+  overflow:   hidden;
+  transition: max-height 0.40s ease;
+}
+
+.narrative-body.narrative-expanded { max-height: 2400px; }
+
+.narrative-text {
+  font-size:   0.90em;
+  line-height: 1.78;
+  color:       #2E3338;
+  padding-top: 10px;
+}
+
+.narrative-text p { margin: 0 0 1em; }
+.narrative-text p:last-child { margin-bottom: 0; }
+
+.narrative-placeholder {
+  color:      #b0bbc7;
+  font-style: italic;
+  font-size:  0.86em;
+  margin-top: 8px;
+}
+
+/* Expand/collapse row at bottom of narrative card */
+.narrative-expand-row {
+  display:     flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  margin-top:  8px;
+  border-top:  1px solid #edf1f6;
+}
+
+.narrative-toggle-btn {
+  display:        flex;
+  align-items:    center;
+  gap:            5px;
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.68em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+  background:     #f0f4f8;
+  border:         1px solid var(--border-col);
+  border-radius:  var(--radius);
+  padding:        4px 10px;
+  cursor:         pointer;
+  transition:     all 0.15s;
+  white-space:    nowrap;
+}
+
+.narrative-toggle-btn:hover {
+  color:        var(--brand-primary);
+  border-color: var(--brand-light-blue);
+  background:   #e8eef5;
+}
+
+.narrative-toggle-btn.narrative-toggle-open {
+  color:        var(--brand-accent);
+  border-color: var(--brand-accent);
+  background:   #fffbf8;
+}
+
+.narrative-toggle-btn .fas { transition: transform 0.3s ease; font-size: 0.9em; }
+
+/* === CONTEXT KPI CARDS ==================================================== */
+
+.kpi-flex-row {
+  display:   flex;
+  gap:       8px;
+  flex-wrap: nowrap;
+}
+
+.kpi-flex-wrap { flex-wrap: wrap; }
+
+.ctx-card {
+  flex:          1 1 120px;
+  min-width:     100px;
+  max-width:     200px;
+  background:    #ffffff;
+  border:        1px solid var(--border-col);
+  border-left:   3px solid var(--brand-primary);
+  border-radius: var(--radius);
+  padding:       10px 13px;
+  box-shadow:    var(--shadow-sm);
+}
+
+.ctx-card.ctx-flagged {
+  border-left-color: var(--tier-critical);
+  background:        #fff8f8;
+}
+
+.ctx-value {
+  font-family:   'Oswald', sans-serif;
+  font-size:     1.28em;
+  color:         var(--brand-primary);
+  line-height:   1.1;
+  margin-bottom: 3px;
+}
+
+.ctx-card.ctx-flagged .ctx-value { color: var(--tier-critical); }
+
+.ctx-warn-icon {
+  font-size:   0.58em;
+  margin-left: 4px;
+  color:       var(--tier-critical);
+}
+
+.ctx-label {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.64em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+}
+
+.ctx-sub {
+  font-size:  0.68em;
+  color:      #a0aab4;
+  margin-top: 2px;
+}
+
+/* === CHART HELPERS ======================================================== */
+
+.chart-src {
+  font-size:     0.72em;
+  color:         var(--brand-grey);
+  margin-bottom: 8px;
+  display:       inline-block;
+}
+
+.chart-src a { color: var(--brand-light-blue); text-decoration: none; }
+.chart-src a:hover { text-decoration: underline; }
+
+.interp-box {
+  font-size:     0.82em;
+  color:         #555;
+  line-height:   1.6;
+  margin-bottom: 14px;
+  padding:       9px 12px;
+  background:    #f7f9fb;
+  border-left:   3px solid #dde4ec;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* === TIER BADGE =========================================================== */
+
+.tier-badge {
+  display:        inline-block;
+  padding:        3px 11px;
+  border-radius:  3px;
+  color:          #ffffff;
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.78em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* === STUB PANELS (placeholder tabs) ======================================= */
+
+.stub-panel { min-height: 160px; }
+
+.stub-note {
+  color:      #b0bbc7;
+  font-style: italic;
+  font-size:  0.88em;
+  margin-top: 8px;
+}
+
+/* === ABOUT PAGE =========================================================== */
+
+.about-page { max-width: 860px; }
+
+/* === INPUT OVERRIDES ====================================================== */
+
+.selectize-input,
+.selectize-dropdown,
+.form-control,
+select { font-family: 'Work Sans', sans-serif !important; font-size: 0.88em !important; }
+
+/* === UTILITIES ============================================================ */
+
+.bg-brand-primary   { background-color: var(--brand-primary)   !important; }
+.bg-brand-accent    { background-color: var(--brand-accent)    !important; }
+.text-brand-primary { color: var(--brand-primary) !important; }
+.text-brand-grey    { color: var(--brand-grey)    !important; }
+.text-brand-accent  { color: var(--brand-accent)  !important; }
+
+/* Significance change labels */
+.sig-up   { color: #8B2635; font-weight: 600; font-size: 0.78em; }
+.sig-mar  { color: #C17B5A; font-weight: 600; font-size: 0.78em; }
+.sig-flat { color: #859C72; font-size: 0.78em; }
+
+/* === KPI SECTION (standalone cards below charts, no panel-card wrapper) === */
+
+.kpi-section {
+  margin-bottom: 16px;
+}
+
+.kpi-section .row { margin-left: -6px; margin-right: -6px; margin-bottom: 10px; }
+.kpi-section .row:last-child { margin-bottom: 0; }
+.kpi-section [class*="col-"] { padding-left: 6px; padding-right: 6px; }
+
+/* Make ctx-card fill its Bootstrap column */
+.kpi-section .ctx-card { max-width: 100%; flex: unset; width: 100%; }
+
+.kpi-src-note { padding-top: 8px; }
+
+.kpi-warn-note {
+  font-size:   0.75em;
+  color:       var(--brand-grey);
+  margin-top:  4px;
+  line-height: 1.5;
+}
+
+/* === ASSESSMENT BOX (right col of fiscal health panel) ==================== */
+
+.assessment-box {
+  padding:    4px 8px;
+  height:     100%;
+}
+
+/* === MULTI-SOURCE ATTRIBUTION ============================================= */
+
+.chart-src + .chart-src::before {
+  content: " / ";
+}
+
+/* === HORIZONTAL NUMERIC CARD (col-4, 3 values side by side) =============== */
+
+.kpi-nums-horiz {
+  display:     flex;
+  align-items: center;
+  height:      100%;
+  padding:     8px 10px;
+  gap:         0;
+}
+
+.kpi-num-item {
+  flex:        1;
+  text-align:  center;
+  padding:     0 8px;
+}
+
+.kpi-num-divider-v {
+  width:       1px;
+  height:      36px;
+  background:  #edf1f6;
+  flex-shrink: 0;
+}
+
+/* === MINI CHART + VALUE LAYOUT ============================================ */
+
+.mini-chart-body {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  margin-top:  4px;
+}
+
+.mini-chart-area {
+  flex:      1;
+  min-width: 0;  /* allows flex shrink past content size */
+}
+
+.mini-chart-val-box {
+  flex:          0 0 68px;
+  text-align:    right;
+  padding-right: 4px;
+}
+
+.mini-val-number {
+  font-family: 'Oswald', sans-serif;
+  font-size:   1.55em;
+  color:       var(--brand-dark-blue);
+  line-height: 1;
+}
+
+/* Assessment panel card sizing */
+.assessment-panel-card { min-height: 80px; }
+
+/* === CLICKABLE KPI CARDS ================================================== */
+
+.kpi-clickable {
+  cursor:     pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.kpi-clickable:hover {
+  border-color: var(--brand-light-blue);
+  box-shadow:   var(--shadow-card-hover);
+}
+
+.kpi-clickable.kpi-selected {
+  border-left-color: var(--brand-accent) !important;
+  border-left-width: 4px;
+  border-color:      var(--brand-accent);
+  background:        #fff5ee !important;
+  box-shadow:        0 3px 12px rgba(193,123,90,0.30) !important;
+}
+
+.kpi-grid-hint {
+  text-align:  center;
+  font-family: 'Work Sans', sans-serif;
+  font-size:   0.73em;
+  font-style:  italic;
+  color:       #7a8898;
+  margin:      0 0 4px;
+  user-select: none;
+}
+
+/* === INDICATOR DETAIL PANEL =============================================== */
+
+.indicator-info-panel { min-height: 52px; }
+
+.indicator-desc-title {
+  font-family:   'Oswald', sans-serif;
+  font-size:     0.82em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color:         var(--brand-primary);
+  margin:        0 0 6px;
+}
+
+.indicator-desc {
+  font-size:   0.88em;
+  line-height: 1.72;
+  color:       #444;
+  margin:      0;
+}
+
+/* === SHOW COMPARISONS BUTTON ============================================== */
+
+.btn-comparisons {
+  font-family:    'Oswald', sans-serif !important;
+  font-size:      0.75em !important;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color:          var(--brand-primary) !important;
+  background:     #f0f4f8 !important;
+  border:         1px solid var(--border-col) !important;
+  border-radius:  var(--radius) !important;
+  padding:        6px 14px !important;
+  box-shadow:     none !important;
+  transition:     all 0.15s;
+}
+
+.btn-comparisons:hover, .btn-comparisons:focus {
+  background:   #e4ebf3 !important;
+  border-color: var(--brand-light-blue) !important;
+  box-shadow:   none !important;
+  outline:      none !important;
+}
+
+.btn-comparisons.active,
+.btn-comparisons:active {
+  color:        #ffffff !important;
+  background:   var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+  box-shadow:   none !important;
+}
+
+/* === SHARED KPI LEGEND ==================================================== */
+.comp-toggle-row {
+  display:         flex;
+  justify-content: flex-end;
+  margin-bottom:   3px;
+}
+
+.kpi-shared-legend {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             12px;
+  font-family:     'Work Sans', sans-serif;
+  font-size:       0.76em;
+  color:           var(--brand-grey);
+  margin:          2px 0 2px;
+  flex-wrap:       wrap;
+}
+
+.kl-item {
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+}
+
+.kl-line {
+  display:        inline-block;
+  width:          22px;
+  height:         2px;
+  border-radius:  1px;
+}
+
+.kl-country { background: var(--brand-primary); }
+.kl-region  { background: #859C72; border-top: 2px dashed #859C72; height: 0; }
+.kl-income  { background: #4A7C8C; border-top: 2px dotted #4A7C8C; height: 0; }
+
+.kl-text  { font-size: 0.9em; color: #555; }
+.kl-sep   { width: 1px; height: 12px; background: #d0d8e0; }
+
+/* KPI grid gutter */
+.kpi-grid-row { margin-left: -6px; margin-right: -6px; }
+.kpi-grid-row > [class*="col-"] { padding-left: 6px; padding-right: 6px; }
+
+/* === MOBILE =============================================================== */
+@media (max-width: 767px) {
+  /* Tighter padding on small screens */
+  .always-strip                   { padding: 6px 12px 6px; }
+  .main-tabs-wrap                 { padding: 0 10px; }
+
+  /* Score cards wrap into 2-column grid */
+  .score-cards-row                { flex-wrap: wrap; gap: 6px; }
+  .score-card                     { flex: 1 1 calc(50% - 6px); min-width: 120px; }
+  .score-card-overall             { flex: 1 1 100%; text-align: left; }
+  .overall-score                  { font-size: 1.4em; }
+
+  /* Country header */
+  .country-name                   { font-size: 1.1em; }
+  .country-flag                   { height: 28px; }
+  .country-meta                   { font-size: 0.72em; }
+
+  /* KPI numeric strip wraps */
+  .kpi-flex-row                   { flex-wrap: wrap; }
+  .ctx-card                       { flex: 1 1 calc(50% - 8px); max-width: none; }
+
+  /* Pill nav scrolls horizontally */
+  .nav-pills                      { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; white-space: nowrap; }
+  .nav-pills > li > a             { padding: 5px 10px; font-size: 0.7em; }
+
+  /* Tab body less top padding */
+  .tab-body                       { padding-top: 10px; }
+
+  /* Tighten panel cards */
+  .panel-card                     { padding: 10px 12px; margin-bottom: 10px; }
+
+  /* Expand chart height slightly on mobile since cards are full-width */
+  .sparkline-card echarts4r       { height: 140px !important; }
+}
+
+@media (max-width: 480px) {
+  .score-card                     { flex: 1 1 100%; }
+  .score-card-overall             { flex: 1 1 100%; }
+  .main-tabs-wrap                 { padding: 0 8px; }
+}
+
+/* === DIMENSION INFO PILL =================================================== */
+.dim-pill {
+  position:       relative;
+  display:        inline-flex;
+  align-items:    center;
+  font-family:    'Work Sans', sans-serif;
+  font-size:      0.60em;
+  font-weight:    500;
+  color:          var(--brand-light-blue);
+  background:     rgba(107, 140, 174, 0.13);
+  border:         1px solid rgba(107, 140, 174, 0.28);
+  border-radius:  10px;
+  padding:        1px 7px 2px;
+  cursor:         help;
+  margin-left:    6px;
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  line-height:    1.5;
+  white-space:    nowrap;
+  z-index:        10;
+  transition:     background 0.15s, border-color 0.15s;
+}
+
+.dim-pill:hover { background: rgba(107,140,174,0.22); border-color: rgba(107,140,174,0.45); }
+
+.dim-pill .dim-tooltip {
+  visibility:       hidden;
+  opacity:          0;
+  width:            240px;
+  background:       rgba(128, 128, 128, 0.10);
+  backdrop-filter:  blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color:            #2E3338;
+  font-family:      'Work Sans', sans-serif;
+  font-size:        1.12em;
+  font-style:       normal;
+  font-weight:      400;
+  line-height:      1.58;
+  text-transform:   none;
+  letter-spacing:   0;
+  padding:          11px 13px;
+  border-radius:    5px;
+  border:           1px solid rgba(0,0,0,0.10);
+  position:         absolute;
+  bottom:           calc(100% + 8px);
+  left:             50%;
+  transform:        translateX(-50%);
+  transition:       opacity 0.18s;
+  pointer-events:   none;
+  box-shadow:       0 2px 12px rgba(0,0,0,0.08);
+  z-index:          9999;
+  white-space:      normal;
+}
+
+.dim-pill .dim-tooltip::after {
+  content:      '';
+  position:     absolute;
+  top:          100%;
+  left:         50%;
+  transform:    translateX(-50%);
+  border:       5px solid transparent;
+  border-top-color: rgba(128,128,128,0.18);
+}
+
+.dim-pill:hover .dim-tooltip { visibility: visible; opacity: 1; }
+
+/* === BOTTOM PAGE PADDING ================================================== */
+.main-tabs-wrap { padding-bottom: 32px; }
+
+/* === INTERPRETATION TEXT (full-size chart panels) ========================= */
+.interp-text {
+  font-size:   0.83em;
+  color:       var(--brand-grey);
+  line-height: 1.55;
+  margin:      0 0 8px;
+}
+
+/* === CHART ABOUT SECTION ================================================== */
+.chart-about-section {
+  margin-top:  8px;
+  padding-top: 8px;
+  border-top:  1px solid #edf1f6;
+}
+
+.chart-about-title {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.63em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          var(--brand-grey);
+  margin-bottom:  3px;
+}
+
+.chart-about-text {
+  font-size:   0.82em;
+  color:       #555;
+  line-height: 1.58;
+  margin:      0;
+}
+
+/* === D2 CHART CARD SELECTION ============================================== */
+.d2-chart-card {
+  cursor:     pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.d2-chart-card:hover {
+  border-color: var(--brand-light-blue);
+  box-shadow:   0 2px 8px rgba(43,76,111,0.12);
+}
+
+.d2-chart-card.d2-chart-active {
+  border-left-color: var(--brand-accent) !important;
+  border-left-width: 4px;
+  background:        #fff5ee !important;
+  box-shadow:        0 3px 12px rgba(193,123,90,0.30) !important;
+}
+
+/* === D2 METRIC SELECTOR ROW =============================================== */
+.d2-metric-row {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  margin:      6px 0 4px 0;
+  padding:     2px 0;
+}
+.d2-metric-label {
+  font-size:   11px;
+  color:       var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  font-family: 'Work Sans', sans-serif;
+}
+/* Compact the Shiny selectInput inside the metric row */
+.d2-metric-row .form-group { margin-bottom: 0 !important; }
+.d2-metric-row select {
+  font-size: 11px !important;
+  height:    28px !important;
+  padding:   2px 8px !important;
+  border-color: var(--border-light) !important;
+}
+
+/* === D3 CHART CARD SELECTION (mirrors D2) ================================= */
+.d3-chart-card {
+  cursor:     pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.d3-chart-card:hover {
+  border-color: var(--brand-light-blue);
+  box-shadow:   0 2px 8px rgba(43,76,111,0.12);
+}
+.d3-chart-card.d3-chart-active {
+  border-left-color: var(--brand-secondary) !important;
+  border-left-width: 4px;
+  background:        #f8faf5 !important;
+  box-shadow:        0 3px 12px rgba(133,156,114,0.25) !important;
+}
+
+/* === MINERAL CHIPS ======================================================== */
+.mineral-chips-row {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       10px;
+  margin:    12px 0 6px;
+}
+
+.mineral-chip {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  padding:        10px 18px 8px;
+  border-radius:  6px;
+  color:          #ffffff;
+  min-width:      88px;
+  text-align:     center;
+}
+
+.mineral-chip-name {
+  font-family:    'Oswald', sans-serif;
+  font-size:      0.72em;
+  letter-spacing: 0.1em;
+  opacity:        0.9;
+  margin-bottom:  2px;
+}
+
+.mineral-chip-pct {
+  font-family: 'Oswald', sans-serif;
+  font-size:   1.75em;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.mineral-chip-sub {
+  font-size:  0.62em;
+  opacity:    0.8;
+  margin-top: 2px;
+}
+
+.mineral-intro {
+  font-size:   0.88em;
+  color:       #4a5568;
+  margin:      6px 0 0;
+  line-height: 1.5;
+}
+
+/* === BOTTOM PAGE BREATHING ROOM =========================================== */
+.tab-body { padding-bottom: 60px; }
+
+/* === D4 CHART CARD SELECTION ============================================== */
+.d4-chart-card {
+  cursor:     pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.d4-chart-card:hover {
+  border-color: var(--brand-light-blue);
+  box-shadow:   0 2px 8px rgba(43,76,111,0.12);
+}
+.d4-chart-card.d4-chart-active {
+  border-left-color: var(--brand-grey) !important;
+  border-left-width: 4px;
+  background:        #f8f9fb !important;
+  box-shadow:        0 3px 12px rgba(106,115,129,0.20) !important;
+}

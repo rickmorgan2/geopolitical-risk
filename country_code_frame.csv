@@ -1,0 +1,176 @@
+gwcode,country_name,iso3c,iso3n,wbcode,iso2c,wb_country_name
+2,United States,USA,840,USA,US,United States
+20,Canada,CAN,124,CAN,CA,Canada
+31,Bahamas,BHS,44,BHS,BS,"Bahamas, The"
+40,Cuba,CUB,192,CUB,CU,Cuba
+41,Haiti,HTI,332,HTI,HT,Haiti
+42,Dominican Republic,DOM,214,DOM,DO,Dominican Republic
+51,Jamaica,JAM,388,JAM,JM,Jamaica
+52,Trinidad and Tobago,TTO,780,TTO,TT,Trinidad and Tobago
+53,Barbados,BRB,52,BRB,BB,Barbados
+70,Mexico,MEX,484,MEX,MX,Mexico
+80,Belize,BLZ,84,BLZ,BZ,Belize
+90,Guatemala,GTM,320,GTM,GT,Guatemala
+91,Honduras,HND,340,HND,HN,Honduras
+92,El Salvador,SLV,222,SLV,SV,El Salvador
+93,Nicaragua,NIC,558,NIC,NI,Nicaragua
+94,Costa Rica,CRI,188,CRI,CR,Costa Rica
+95,Panama,PAN,591,PAN,PA,Panama
+100,Colombia,COL,170,COL,CO,Colombia
+101,Venezuela,VEN,862,VEN,VE,"Venezuela, RB"
+110,Guyana,GUY,328,GUY,GY,Guyana
+115,Suriname,SUR,740,SUR,SR,Suriname
+130,Ecuador,ECU,218,ECU,EC,Ecuador
+135,Peru,PER,604,PER,PE,Peru
+140,Brazil,BRA,76,BRA,BR,Brazil
+145,Bolivia,BOL,68,BOL,BO,Bolivia
+150,Paraguay,PRY,600,PRY,PY,Paraguay
+155,Chile,CHL,152,CHL,CL,Chile
+160,Argentina,ARG,32,ARG,AR,Argentina
+165,Uruguay,URY,858,URY,UY,Uruguay
+200,United Kingdom,GBR,826,GBR,GB,United Kingdom
+205,Ireland,IRL,372,IRL,IE,Ireland
+210,Netherlands,NLD,528,NLD,NL,Netherlands
+211,Belgium,BEL,56,BEL,BE,Belgium
+212,Luxembourg,LUX,442,LUX,LU,Luxembourg
+220,France,FRA,250,FRA,FR,France
+225,Switzerland,CHE,756,CHE,CH,Switzerland
+230,Spain,ESP,724,ESP,ES,Spain
+235,Portugal,PRT,620,PRT,PT,Portugal
+260,Germany,DEU,276,DEU,DE,Germany
+290,Poland,POL,616,POL,PL,Poland
+305,Austria,AUT,40,AUT,AT,Austria
+310,Hungary,HUN,348,HUN,HU,Hungary
+316,Czechia,CZE,203,CZE,CZ,Czech Republic
+317,Slovak Republic,SVK,703,SVK,SK,Slovak Republic
+325,Italy,ITA,380,ITA,IT,Italy
+338,Malta,MLT,470,MLT,MT,Malta
+339,Albania,ALB,8,ALB,AL,Albania
+341,Montenegro,MNE,499,MNE,ME,Montenegro
+343,North Macedonia,MKD,807,MKD,MK,North Macedonia
+344,Croatia,HRV,191,HRV,HR,Croatia
+345,Serbia,SRB,688,SRB,RS,Serbia
+346,Bosnia and Herzegovina,BIH,70,BIH,BA,Bosnia and Herzegovina
+347,Kosovo,XKX,383,XKX,XK,Kosovo
+349,Slovenia,SVN,705,SVN,SI,Slovenia
+350,Greece,GRC,300,GRC,GR,Greece
+352,Cyprus,CYP,196,CYP,CY,Cyprus
+355,Bulgaria,BGR,100,BGR,BG,Bulgaria
+359,Moldova,MDA,498,MDA,MD,Moldova
+360,Romania,ROU,642,ROU,RO,Romania
+365,Russia,RUS,643,RUS,RU,Russian Federation
+366,Estonia,EST,233,EST,EE,Estonia
+367,Latvia,LVA,428,LVA,LV,Latvia
+368,Lithuania,LTU,440,LTU,LT,Lithuania
+369,Ukraine,UKR,804,UKR,UA,Ukraine
+370,Belarus,BLR,112,BLR,BY,Belarus
+371,Armenia,ARM,51,ARM,AM,Armenia
+372,Georgia,GEO,268,GEO,GE,Georgia
+373,Azerbaijan,AZE,31,AZE,AZ,Azerbaijan
+375,Finland,FIN,246,FIN,FI,Finland
+380,Sweden,SWE,752,SWE,SE,Sweden
+385,Norway,NOR,578,NOR,NO,Norway
+390,Denmark,DNK,208,DNK,DK,Denmark
+395,Iceland,ISL,352,ISL,IS,Iceland
+402,Cabo Verde,CPV,132,CPV,CV,Cabo Verde
+404,Guinea-Bissau,GNB,624,GNB,GW,Guinea-Bissau
+411,Equatorial Guinea,GNQ,226,GNQ,GQ,Equatorial Guinea
+420,Gambia,GMB,270,GMB,GM,"Gambia, The"
+432,Mali,MLI,466,MLI,ML,Mali
+433,Senegal,SEN,686,SEN,SN,Senegal
+434,Benin,BEN,204,BEN,BJ,Benin
+435,Mauritania,MRT,478,MRT,MR,Mauritania
+436,Niger,NER,562,NER,NE,Niger
+437,Cote d'Ivoire,CIV,384,CIV,CI,Cote d'Ivoire
+438,Guinea,GIN,324,GIN,GN,Guinea
+439,Burkina Faso,BFA,854,BFA,BF,Burkina Faso
+450,Liberia,LBR,430,LBR,LR,Liberia
+451,Sierra Leone,SLE,694,SLE,SL,Sierra Leone
+452,Ghana,GHA,288,GHA,GH,Ghana
+461,Togo,TGO,768,TGO,TG,Togo
+471,Cameroon,CMR,120,CMR,CM,Cameroon
+475,Nigeria,NGA,566,NGA,NG,Nigeria
+481,Gabon,GAB,266,GAB,GA,Gabon
+482,Central African Republic,CAF,140,CAF,CF,Central African Republic
+483,Chad,TCD,148,TCD,TD,Chad
+484,Republic of the Congo,COG,178,COG,CG,"Congo, Rep."
+490,Democratic Republic of the Congo,COD,180,COD,CD,"Congo, Dem. Rep."
+500,Uganda,UGA,800,UGA,UG,Uganda
+501,Kenya,KEN,404,KEN,KE,Kenya
+510,Tanzania,TZA,834,TZA,TZ,Tanzania
+516,Burundi,BDI,108,BDI,BI,Burundi
+517,Rwanda,RWA,646,RWA,RW,Rwanda
+520,Somalia,SOM,706,SOM,SO,Somalia
+522,Djibouti,DJI,262,DJI,DJ,Djibouti
+530,Ethiopia,ETH,231,ETH,ET,Ethiopia
+531,Eritrea,ERI,232,ERI,ER,Eritrea
+540,Angola,AGO,24,AGO,AO,Angola
+541,Mozambique,MOZ,508,MOZ,MZ,Mozambique
+551,Zambia,ZMB,894,ZMB,ZM,Zambia
+552,Zimbabwe,ZWE,716,ZWE,ZW,Zimbabwe
+553,Malawi,MWI,454,MWI,MW,Malawi
+560,South Africa,ZAF,710,ZAF,ZA,South Africa
+565,Namibia,NAM,516,NAM,NA,Namibia
+570,Lesotho,LSO,426,LSO,LS,Lesotho
+571,Botswana,BWA,72,BWA,BW,Botswana
+572,Eswatini,SWZ,748,SWZ,SZ,Eswatini
+580,Madagascar,MDG,450,MDG,MG,Madagascar
+581,Comoros,COM,174,COM,KM,Comoros
+590,Mauritius,MUS,480,MUS,MU,Mauritius
+600,Morocco,MAR,504,MAR,MA,Morocco
+615,Algeria,DZA,12,DZA,DZ,Algeria
+616,Tunisia,TUN,788,TUN,TN,Tunisia
+620,Libya,LBY,434,LBY,LY,Libya
+625,Sudan,SDN,729,SDN,SD,Sudan
+630,Iran,IRN,364,IRN,IR,"Iran, Islamic Rep."
+640,Turkey,TUR,792,TUR,TR,Turkey
+645,Iraq,IRQ,368,IRQ,IQ,Iraq
+651,Egypt,EGY,818,EGY,EG,"Egypt, Arab Rep."
+652,Syria,SYR,760,SYR,SY,Syrian Arab Republic
+660,Lebanon,LBN,422,LBN,LB,Lebanon
+663,Jordan,JOR,400,JOR,JO,Jordan
+666,Israel,ISR,376,ISR,IL,Israel
+670,Saudi Arabia,SAU,682,SAU,SA,Saudi Arabia
+678,Yemen,YEM,887,YEM,YE,"Yemen, Rep."
+690,Kuwait,KWT,414,KWT,KW,Kuwait
+692,Bahrain,BHR,48,BHR,BH,Bahrain
+694,Qatar,QAT,634,QAT,QA,Qatar
+696,United Arab Emirates,ARE,784,ARE,AE,United Arab Emirates
+698,Oman,OMN,512,OMN,OM,Oman
+700,Afghanistan,AFG,4,AFG,AF,Afghanistan
+701,Turkmenistan,TKM,795,TKM,TM,Turkmenistan
+702,Tajikistan,TJK,762,TJK,TJ,Tajikistan
+703,Kyrgyz Republic,KGZ,417,KGZ,KG,Kyrgyz Republic
+704,Uzbekistan,UZB,860,UZB,UZ,Uzbekistan
+705,Kazakhstan,KAZ,398,KAZ,KZ,Kazakhstan
+710,China (P.R.C.),CHN,156,CHN,CN,China
+712,Mongolia,MNG,496,MNG,MN,Mongolia
+713,Taiwan,TWN,158,TWN,TW,"Taiwan, China"
+731,North Korea,PRK,408,PRK,KP,"Korea, Dem. People’s Rep."
+732,South Korea,KOR,410,KOR,KR,"Korea, Rep."
+740,Japan,JPN,392,JPN,JP,Japan
+750,India,IND,356,IND,IN,India
+760,Bhutan,BTN,64,BTN,BT,Bhutan
+770,Pakistan,PAK,586,PAK,PK,Pakistan
+771,Bangladesh,BGD,50,BGD,BD,Bangladesh
+775,Burma (Myanmar),MMR,104,MMR,MM,Myanmar
+780,Sri Lanka,LKA,144,LKA,LK,Sri Lanka
+781,Maldives,MDV,462,MDV,MV,Maldives
+790,Nepal,NPL,524,NPL,NP,Nepal
+800,Thailand,THA,764,THA,TH,Thailand
+811,Cambodia,KHM,116,KHM,KH,Cambodia
+812,Laos,LAO,418,LAO,LA,Lao PDR
+816,Vietnam,VNM,704,VNM,VN,Vietnam
+820,Malaysia,MYS,458,MYS,MY,Malaysia
+830,Singapore,SGP,702,SGP,SG,Singapore
+835,Brunei,BRN,96,BRN,BN,Brunei Darussalam
+840,Philippines,PHL,608,PHL,PH,Philippines
+850,Indonesia,IDN,360,IDN,ID,Indonesia
+860,Timor-Leste,TLS,626,TLS,TL,Timor-Leste
+900,Australia,AUS,36,AUS,AU,Australia
+910,Papua New Guinea,PNG,598,PNG,PG,Papua New Guinea
+920,New Zealand,NZL,554,NZL,NZ,New Zealand
+940,Solomon Islands,SLB,90,SLB,SB,Solomon Islands
+950,Fiji,FJI,242,FJI,FJ,Fiji
+340,Serbia,SRB,688,SRB,RS,Serbia
+626,South Sudan,SSD,728,SSD,SS,South Sudan
