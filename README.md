@@ -1,10 +1,10 @@
-# Economic Risk Data Pipeline
+# Geopolitical Risk Data Pipeline
 
-base directory: econ-risk-pipeline
+The geopolitical risk data pipeline produces all of the indicators and indices needed for use in a Shiny dashboard.
 
-The economic risk data pipeline produces all of the indicators and indices needed for use in a Shiny dashboard.
+I used the R `{brms}` package to draft a set of Bayesian factor analysis models to calculate risk estimates and uncertainty bounds around three dimensions of economic risk macro, import reliance, and export fragility. I then calculated a network contagion risk score for each country, derived form the risk profiles of the country's trading partners. I used DuckDB for SQL-layer computation and standard R packages for data management and wrangling. All pipeline artifacts are stored in a hive-partitioned DuckDB database. 
 
-I used the R `{brms}` package to draft a set of Bayesian factor analysis models to calculate risk estimates and uncertainty bounds around three dimensions of economic risk macro, import reliance, and export fragility. I then calculated a network contagion risk score for each country, derived form the risk profiles of the country's trading partners. I used DuckDB for SQL-layer computation and standard R packages for data management and wrangling. All pipeline artifacts are stored in a hive-partitioned DuckDB database.
+THE MODELING portion needs a lot of work... 
 
 The pipeline ingests data from multiple public sources, transforms it through a Medallion architecture (Bronze -> Silver -> Gold), and produces scored, tiered, and narrated country risk profiles. It builds on a long chain of fits and starts around the idea that price volatility in a country's import and export baskets, triggered by geopolitical events and disruptions in international markets increases political instability and the risk of civil unrest and conflict. 
 
@@ -36,8 +36,8 @@ The four risk dimensions scored are:
 ## Repository structure
 
 ```
-econ-risk-pipeline/
-|-- indicator_guide.md          # full indicator reference
+geopolitical-risk/
+|-- indicator_guide.md                # full indicator reference
 |-- config.R                          # all configuration -- edit here first
 |-- run_pipeline.R                    # top-level orchestrator
 |-- country_code_frame.csv            # 175 sovereign states with iso3c keys
@@ -216,26 +216,10 @@ mkdir -p data
 ### Full pipeline run
 
 ```r
-setwd("econ-risk-pipeline")  # or open the .Rproj file
+setwd("geopolitical-risk")  # or open the .Rproj file
 source("run_pipeline.R")
 ```
 
-Runtime breakdown (approximate, on a modern laptop):
-
-| Stage | Full MCMC |
-|---|---|
-| Bronze ingest |  10-20 min |
-| Silver transforms | 5-10 min |
-| D1 macro model | ~20 min |
-| D2 annual | ~30 min |
-| D2 monthly | ~6 hr |
-| D3 annual | ~30 min |
-| D3 monthly | ~6 hr  |
-| D4 network | 2 min |
-| Tiers + changes | < 1 min |
-| Narratives (175 countries) |  15-30 min |
-
-Full MCMC model run takes approximately 14 hours. brms file cache is helpful for resampling -- completed models are not re-run unless data or model specification changes.
 
 Use `BAYES_ALGO <- "pathfinder"` in `config.R` for development updates.
 
