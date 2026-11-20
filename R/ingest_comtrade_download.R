@@ -183,13 +183,13 @@ download_comtrade_data <- function(iso3c_vec, commodity_codes,
 # Years are listed newest-first; [1] = 2025, [2] = 2024, ..., [11] = 2015.
 # Completed: 2016-2025 (update this comment as years are finished)
 
-years_newest_first <- 2025:2015
+years_newest_first <- 2026:2023
 
 start_yrmon_vec <- paste0(years_newest_first, "-01")
 end_yrmon_vec   <- paste0(years_newest_first, "-12")
 
 # Download a single year (change the index to run a different year)
-year_idx <- 1   # 1 = 2025
+year_idx <- 1   # 1 = 2026
 
 download_comtrade_data(
   iso3c_vec      = use_iso3c,
