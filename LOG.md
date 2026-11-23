@@ -6,7 +6,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 ## 2026-11-23
 
-### Repo cleanup: stale files archived, WGI removed, legacy branding removed (uncommitted; D-001, D-009, D-024, D-026, D-031)
+### Repo cleanup: stale files archived, WGI removed, legacy branding removed (committed 2026-11-23 as d886405, after the history rewrite; D-001, D-009, D-024, D-026, D-031)
 
 **Task:** Phase 1 hygiene. Move files that nothing uses out of the tracked tree, remove WGI from the pipeline, remove the legacy branding from the working tree, and drop the scratch code from `run_pipeline.R`.
 
@@ -47,7 +47,27 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
   - A search for the old name across tracked and untracked files, outside `data/`, `docs/` and the archives, finds nothing.
 - **`run_pipeline.R`:** the scratch code after the narratives step (old lines 130–209) is deleted (owner). It included the "enters 2025" → "enters 2026" rewrite written back to `gold.narratives`, a reference to an undefined `check`, and CSV dumps.
 - **Checks:** every edited script parses; tests 50, expectations 223, 0 failures. The app was not launched.
-- **Docs:** D-031 added; D-009 superseded; D-001, D-024 and D-026 statuses updated. CLAUDE.md: the plain project name, the `--brand-*` tokens, the archive rule, `archive/` among the places to check before bringing code back, and the narratives layout line. The close-up-shop skill now only keeps the session record out of `docs/` and `archive/`.
+- **Committed by the owner** as `960cfa1` on `fix/comtrade-download`: everything since `20aa706`.
+- **History rewrite, steps 1–5 of D-001** (owner's go-ahead):
+  1. `main` fast-forwarded locally to `960cfa1` (`git fetch . fix/comtrade-download:main`); nothing pushed.
+  2. `git-filter-repo` installed with `pip --user` (version a40bce548d2c); run it as `python -m git_filter_repo`.
+  3. Full mirror backup of the original history: `..\geopolitical-risk-backup.git` (all four refs).
+  4. Fresh clone `..\geopolitical-risk-rewrite`, rewritten with `--invert-paths` for the 14 archived branded paths (the old app copies, wireframes, logo, four CSS files, root `style.css`, plus `check.csv` and `files.zip`, which holds an old app copy) and 14 `--replace-text` rules for the six kept files. The rule files are in the session scratchpad (`rewrite_paths.txt`, `rewrite_rules.txt`).
+  5. Verified: no hit for the old name in any file, path, patch or message of any commit; the tip tree is identical to `960cfa1` (`ff0120c`); authors, dates and messages unchanged; `.git` went from 4.4 MB to 2.2 MB.
+
+  | Commit | Original | Rewritten |
+  |---|---|---|
+  | Initial commit | `4a5f9f2` | `d1db234` |
+  | small edit | `c89ef81` | `664848e` |
+  | getting at it again | `20aa706` | `c189bd0` |
+  | making moves… (today's work) | `960cfa1` | `d886405` |
+
+  The old commits' `ui.R` now carries the wordmark, but their stylesheet has no rule for it. That only matters when checking out an old commit.
+- **History rewrite, step 6** (owner: "do it yourself"):
+  - GitHub had only `main`, at `20aa706`. Pushed from the rewritten clone with `--force-with-lease=main:<full 20aa706 id>`; GitHub `main` is now `d886405`.
+  - Re-synced this repo: stashed the LOG and DECISIONS edits, fetched, `reset --hard origin/main` on `fix/comtrade-download`, `main` set to `origin/main`, stash popped cleanly. The tree is identical before and after (`ff0120c`), so no files changed.
+  - Expired the reflog and ran `gc --prune=now`: the old commits are gone from this repo (`960cfa1` and `20aa706` no longer resolve), and no reachable commit contains the old name. The backup mirror still has the originals.
+- **Docs:** D-031 added; D-009 superseded; D-001, D-024 and D-026 statuses updated; log titles and decision statuses marked committed. CLAUDE.md: the plain project name, the `--brand-*` tokens, the archive rule, `archive/` among the places to check before bringing code back, and the narratives layout line. The close-up-shop skill now only keeps the session record out of `docs/` and `archive/`.
 
 **Why / decisions**
 - **Archive, not delete (D-031, owner):** retired files go to the root `archive/` in a dated subfolder. This replaces D-009, which proposed deleting them. The owner lifted the earlier "leave `archive/` untouched" rule for this.
@@ -71,7 +91,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
   - Owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
 - **Remediation:**
   - Phase 1, nearly done. Still to do:
-    - **History rewrite (D-001):** needs today's work committed. Then a mirror backup, `git filter-repo` in a fresh clone (not installed yet), verification across every commit, and the force-push only on the owner's go-ahead at that moment.
+    - **After the rewrite:** GitHub may keep the old commits reachable by ID for a while; GitHub Support can purge them if that matters. `..\geopolitical-risk-backup.git` (original history) and `..\geopolitical-risk-rewrite` (the push clone) stay until the owner says to delete them. `fix/comtrade-download` and `main` are the same commit; the branch can be deleted.
     - **`.env`:** the owner renames or removes the old-branded Comtrade key name.
     - The 3-month-smoothing script, after the Phase 3 decision.
   - Phase 3 (the silver fixes) not started; it includes the 3-month smoothing decision.
@@ -79,14 +99,14 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 - **Dashboard copy** (`shiny/data/georisk.duckdb`) still has the WGI table and columns and the old tiers until it is next copied from the pipeline database. The app doesn't read the WGI columns.
 - **Narratives:** 2 of 835 stored narratives (ETH overview, HTI D1) mention governance in passing, from WGI-era prompts. They change at the next narratives run.
 - **Dashboard redesign:** later, when the owner asks.
-- **Commit:** the owner commits at the end of today. Everything since `20aa706` is uncommitted.
+- **Commit:** the LOG and DECISIONS updates made after the owner's commit are uncommitted; the code is all in `d886405` on GitHub `main`.
 
 **Notes for picking this up**
 - **`run_pipeline.R` still sources `compute_narratives.R` uncommented,** so sourcing it calls the LLM APIs. The other steps are commented toggles.
 - **Git line endings:** with `* text=auto`, git warns that several LF working files will become CRLF on checkout. That's harmless; the repo stores LF.
 - **Two CSS tokens are used but never defined** (`--border-light`, `--text-muted`), already so at `20aa706`.
 
-### Build-chain rework, extension codes, full rebuild (uncommitted; D-021, D-022, D-025 to D-030)
+### Build-chain rework, extension codes, full rebuild (committed 2026-11-23; D-021, D-022, D-025 to D-030)
 
 **Task:** carry out the approved build-chain plan:
 - the MUV deflator;
@@ -208,7 +228,7 @@ Then start the extension-code download and rebuild everything.
 - **Months from July 2025** carry `deflator_provisional = TRUE` until the World Bank publishes MUV for 2026.
 - **283523 rows** (136, 2010–2018) stay in the parquet until those partitions are rebuilt. Bronze and silver join only active crosswalk codes, so they drop them at the next `ingest_comtrade.R` run; no forced rebuild is needed.
 
-### Comtrade update, Day 3 and the build; build-chain review; database renamed (uncommitted; D-023)
+### Comtrade update, Day 3 and the build; build-chain review; database renamed (committed 2026-11-23; D-023)
 
 **Task:** finish the downloads, run the build (parquet → prices → bronze → silver), review the build-chain scripts, and rename the database.
 
@@ -272,7 +292,7 @@ Then start the extension-code download and rebuild everything.
 
 ## 2026-11-21
 
-### Comtrade update, Day 2 (`run_comtrade_update.R`, uncommitted; D-023)
+### Comtrade update, Day 2 (`run_comtrade_update.R`, committed 2026-11-23; D-023)
 
 **The run** started at 00:05 UTC on 2026-11-22 (19:05 local on 2026-11-21) and finished at 01:49 UTC. It used the full budget of 480 calls, with no errors.
 
@@ -295,7 +315,7 @@ Then start the extension-code download and rebuild everything.
 
 **Left:** World totals for the 5 reporters in 2024 batch 5 (2 calls), then the build (Steps 8–11). Nothing ran on 2026-11-22 UTC.
 
-### Comtrade update, Day 1 (`run_comtrade_update.R`, uncommitted; D-023)
+### Comtrade update, Day 1 (`run_comtrade_update.R`, committed 2026-11-23; D-023)
 
 **The run** used the full budget of 480 calls, ended at 06:00 UTC with exit code 0, and made no 414s or quota stops.
 
@@ -326,7 +346,7 @@ The build waits until nothing is left. **Next:** source the script again after 0
 
 ## 2026-11-20
 
-### Comtrade: why the 2026 run stalled, refresh plan, World totals (uncommitted; D-023)
+### Comtrade: why the 2026 run stalled, refresh plan, World totals (committed 2026-11-23; D-023)
 
 **The stall**
 - The owner's run logged PER at 21:31 UTC, then nothing. The daily quota was spent (the owner had made an earlier run that day).
@@ -394,7 +414,7 @@ That's about 960 calls. Day 1 is about 428, and 2025 starts with what's left of 
 
 **Next:** the owner stops the sleeping session; then Day 1 runs through `run_comtrade_update.R`.
 
-### Forecast build started: outcome data in, download hardening (uncommitted)
+### Forecast build started: outcome data in, download hardening (committed 2026-11-23)
 
 **Direction**
 - **Decisions:** outcome = UCDP organized violence, all three types; full fatality distributions; horizons 1–36 months; country-month (D-018 to D-021). ACLED is out (license).

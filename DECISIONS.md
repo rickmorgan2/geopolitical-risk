@@ -15,7 +15,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-001 — Remove legacy organization branding
 - **Date:** 2026-11-20
-- **Status:** Accepted. Tracked files done 2026-11-23, not yet committed: a "Pressure Points" text wordmark replaces the logo; the logo and legacy CSS files are archived (D-031); UI text, the indicator guide and the CSS header are renamed; the legacy-named CSS tokens are `--brand-*` and its classes are `app-main`, `text-brand-*` and `bg-brand-*`; two unused legacy-named helpers in `global.R` and the commented key line in `config.R` are deleted. Still to do: the history rewrite, which needs the work committed first, and renaming the old key in `.env` (owner).
+- **Status:** Accepted. Done 2026-11-23 apart from the `.env` key name. History rewritten in a fresh clone, verified, and force-pushed to GitHub `main` (`d886405`) on the owner's go-ahead; this repo re-synced; the original history is kept in `..\geopolitical-risk-backup.git`. Tracked files done and committed 2026-11-23: a "Pressure Points" text wordmark replaces the logo; the logo and legacy CSS files are archived (D-031); UI text, the indicator guide and the CSS header are renamed; the legacy-named CSS tokens are `--brand-*` and its classes are `app-main`, `text-brand-*` and `bg-brand-*`; two unused legacy-named helpers in `global.R` and the commented key line in `config.R` are deleted. Still to do: renaming the old key in `.env` (owner).
 - **Context:** The repo and dashboard carry a former organization's name and logo.
 - **Decision:**
   - Remove every reference from tracked files: UI text, logo, CSS token and class names, unused helpers, docs.
@@ -35,7 +35,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-003 — Comtrade download design
 - **Date:** 2026-11-20
-- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, not yet committed.
+- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, committed 2026-11-23.
 - **Context:**
   - Requests listed all ~172 partners explicitly, making URLs about 2,000 characters.
   - Comtrade began rejecting these with HTTP 414. The same URL had worked in March 2026.
@@ -55,7 +55,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-004 — Mirrored flows are rebuilt from self-reported data
 - **Date:** 2026-11-20
-- **Status:** Accepted. Implemented in `R/ingest_comtrade_build.R`, not yet committed.
+- **Status:** Accepted. Implemented in `R/ingest_comtrade_build.R`, committed 2026-11-23.
 - **Context:**
   - The build processed only missing partitions, so refreshed CSVs were ignored.
   - It mirrored only country-months with no rows at all, so old mirrors were never updated.
@@ -68,7 +68,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-005 — One parquet path
 - **Date:** 2026-11-20
-- **Status:** Accepted. Implemented, not yet committed.
+- **Status:** Accepted. Implemented, committed 2026-11-23.
 - **Decision:** `compute_silver_comtrade.R` reads `COMTRADE_PARQUET` from `config.R` (`data/comtrade_parquet`) instead of a hard-coded sibling-project path.
 - **Context:** On 2026-11-20 the two copies were identical (28 columns, 19,660,961 rows), so outputs don't change. Without this, new downloads would never reach the silver layer.
 
@@ -271,7 +271,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-024 — Dashboard name: Pressure Points
 - **Date:** 2026-11-21
-- **Status:** Accepted for now; the owner may revisit it. Supersedes D-002. Applied 2026-11-23 to the app (text wordmark, About panel), the indicator guide and the stylesheet; not yet committed.
+- **Status:** Accepted for now; the owner may revisit it. Supersedes D-002. Applied 2026-11-23 to the app (text wordmark, About panel), the indicator guide and the stylesheet; committed 2026-11-23.
 - **Context:**
   - The owner dropped "Undercurrent".
   - Since D-018, the headline output is a forecast of organized violence. Economic shocks, exposure and governance buffers (D-020) are its inputs, so "Country Economic Risk Monitor" no longer describes the tool.
@@ -283,7 +283,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-025 — Deflate trade values with the World Bank MUV index
 - **Date:** 2026-11-23
-- **Status:** Accepted (owner). Implemented 2026-11-23 in `R/deflator.R` and `R/ingest_price_series.R`, not yet committed; the full rebuild that day removed the October 2025 spike.
+- **Status:** Accepted (owner). Implemented 2026-11-23 in `R/deflator.R` and `R/ingest_price_series.R`, committed 2026-11-23; the full rebuild that day removed the October 2025 spike.
 - **Context:**
   - Trade values were deflated with US CPI from the IMF. US consumer prices are a poor deflator for international goods trade.
   - October 2025 has no US CPI value, so 109,623 self-reported rows fell back to nominal dollars: about +3.5% against September (103.54) and November (103.33).
@@ -297,7 +297,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-026 — Governance from V-Dem, not WGI
 - **Date:** 2026-11-23
-- **Status:** Accepted (owner). V-Dem ingest and variable choice are deferred to a later phase, after the economic build is settled (owner, 2026-11-23). WGI was removed from the pipeline on 2026-11-23 (owner): `ingest_wgi.R` and `data/raw_wgi/` are archived; WGI is out of the context layer, the tier flag boost, the narrative prompts and the docs; `bronze.wb_wgi_raw` is dropped and the gold context, tier and change tables were rebuilt without it. Code not yet committed.
+- **Status:** Accepted (owner). V-Dem ingest and variable choice are deferred to a later phase, after the economic build is settled (owner, 2026-11-23). WGI was removed from the pipeline on 2026-11-23 (owner): `ingest_wgi.R` and `data/raw_wgi/` are archived; WGI is out of the context layer, the tier flag boost, the narrative prompts and the docs; `bronze.wb_wgi_raw` is dropped and the gold context, tier and change tables were rebuilt without it. Committed 2026-11-23.
 - **Decision:**
   - The forecast's governance and political inputs come from V-Dem, not the World Bank Worldwide Governance Indicators (WGI).
   - V-Dem is ingested as country-year data, with its posterior uncertainty, and lagged by its March release date.
@@ -354,7 +354,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-029 — Commodity coverage and pricing in the build
 - **Date:** 2026-11-23
-- **Status:** Accepted (owner). Implemented 2026-11-23 in the crosswalk, `R/ingest_comtrade_build.R` and `R/ingest_price_series.R`, not yet committed. The owner confirmed the fallbacks after the rebuild: barley from FRED, sorghum and shrimp from Comtrade unit values. The USGS and Kimberley checks are still to do.
+- **Status:** Accepted (owner). Implemented 2026-11-23 in the crosswalk, `R/ingest_comtrade_build.R` and `R/ingest_price_series.R`, committed 2026-11-23. The owner confirmed the fallbacks after the rebuild: barley from FRED, sorghum and shrimp from Comtrade unit values. The USGS and Kimberley checks are still to do.
 - **Decision:**
   - **Coverage:** every downloaded code is switched on except plywood (4408, 4412), which stays excluded. That brings in the 64 codes the build used to drop and the 55 extension codes, including charcoal, logs and sawnwood.
   - **No double counting:** a code whose children are also downloaded becomes a remainder (parent minus children), using `parent_code` in the code file.
@@ -379,7 +379,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-031 — Retired files go to the root archive, not the bin
 - **Date:** 2026-11-23
-- **Status:** Accepted (owner). Supersedes D-009. First batch moved 2026-11-23, not yet committed.
+- **Status:** Accepted (owner). Supersedes D-009. First batch moved 2026-11-23, committed 2026-11-23.
 - **Decision:**
   - Files retired from the repo are moved into the gitignored root `archive/`, in a dated subfolder that keeps their repo paths (for example `archive/2026-11-23_repo_cleanup/shiny/old/ui.R`). They are not deleted.
   - The owner commits the removal from the tracked tree.
