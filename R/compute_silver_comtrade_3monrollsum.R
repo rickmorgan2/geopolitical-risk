@@ -113,7 +113,7 @@
 #           compute_bayes_d3_annual.R, compute_bayes_d3_monthly.R,
 #           compute_d4_network.R
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)

@@ -1,14 +1,19 @@
 # ingest_comtrade.R
 #
-# Bronze-layer aggregation from the commodity-project bilateral parquet.
-# Does NOT download or re-process raw data -- reads the existing parquet
-# produced by the commodity-project pipeline.
+# Bronze-layer aggregation from the Comtrade bilateral parquet built by
+# ingest_comtrade_build.R and enriched by ingest_price_series.R. Does NOT
+# download or re-process raw data.
 #
 # -- Source parquet ------------------------------------------------------------
 #   Path: COMTRADE_PARQUET (set in config.R)
 #   Layout: hive-partitioned by iso3c={ISO3C}/yr={YEAR}/
-#   Coverage: 173 countries, 174 HS codes, 90 commodities, 2010-present, monthly
-#   Values: constant_value_2024 (CPI-adjusted to 2024 USD); mirrored gaps filled
+#   Coverage: 173 countries, 227 active HS codes (core and extension sets,
+#             D-027, D-029), 2010-present, monthly
+#   Values: constant_value_2024 (deflated with the World Bank MUV index to 2024
+#           US$, D-025); mirrored gaps filled
+#   Broad headings (broad_heading = 1 in the crosswalk: chapters 47 and 72 and
+#   chemical headings) count for exposure only and are left out of every table
+#   here, so they never enter totals or shares (D-029).
 #
 # -- Output tables -------------------------------------------------------------
 #
@@ -39,7 +44,7 @@
 #   DuckDB reads the parquet directly via glob -- no data loaded into R memory.
 #   View and temp table dropped at end; compute_silver_comtrade.R re-registers.
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)
@@ -81,31 +86,35 @@ dbWriteTable(con, "country_spine_tmp",
              data.frame(iso3c = COUNTRY_FRAME$iso3c),
              overwrite = TRUE, temporary = TRUE)
 
-dbExecute(con, glue("
-  CREATE OR REPLACE VIEW comtrade_raw AS
-  SELECT p.*
-  FROM read_parquet('{glob}', hive_partitioning = TRUE) p
-  INNER JOIN country_spine_tmp s USING (iso3c)
-  WHERE p.yr >= {START_YR}
-"))
-n_rows <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM comtrade_raw")$n
-message(sprintf("  Parquet view registered: %s rows", format(n_rows, big.mark = ",")))
-
 message("--- Comtrade: loading commodity metadata ---")
-cmd_meta <- read.csv(CROSSWALK_CSV) |>
-  select(cmd_code, commodity_name, pink_sheet, category, subcategory,
-         price_source, price_name, in_data) |>          # drop blank trailing cols from CSV
-  filter(as.logical(in_data)) |>                        # exclude wood products (HS code instability)
+cmd_meta <- read.csv(CROSSWALK_CSV, colClasses = "character") |>
+  filter(in_data == "TRUE") |>                          # plywood stays excluded (D-029)
   mutate(
-    cmd_code         = as.character(cmd_code),
     cmd_code         = ifelse(nchar(cmd_code) %% 2 == 1, paste0("0", cmd_code), cmd_code),
     pink_sheet       = as.integer(pink_sheet),
+    broad_heading    = as.integer(coalesce(na_if(broad_heading, ""), "0")),
+    conflict_mineral = as.integer(coalesce(na_if(conflict_mineral, ""), "0")),
     critical_mineral = 0L                               # Comtrade mineral flows tracked via USGS only
-  )
+  ) |>
+  select(cmd_code, commodity_name, pink_sheet, category, subcategory, price_source,
+         price_name, in_data, parent_code, broad_heading, conflict_mineral, critical_mineral)
 dbWriteTable(con, "cmd_meta", cmd_meta, overwrite = TRUE, temporary = TRUE)
 dbWriteTable(con, DBI::Id(schema = "bronze", table = "cmd_meta"),
              cmd_meta, overwrite = TRUE)  # persisted for compute_silver_comtrade.R
 message("  [bronze.cmd_meta] ", nrow(cmd_meta), " commodities persisted")
+
+# Columns are matched by name: partitions written at different times may
+# order them differently. Broad headings are left out (exposure only).
+dbExecute(con, glue("
+  CREATE OR REPLACE VIEW comtrade_raw AS
+  SELECT p.*
+  FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE) p
+  INNER JOIN country_spine_tmp s USING (iso3c)
+  INNER JOIN cmd_meta m ON p.cmd_code = m.cmd_code AND m.broad_heading = 0
+  WHERE p.yr >= {START_YR}
+"))
+n_rows <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM comtrade_raw")$n
+message(sprintf("  Parquet view registered: %s rows", format(n_rows, big.mark = ",")))
 
 # -- A. Food Security ----------------------------------------------------------
 

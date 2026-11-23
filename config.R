@@ -16,24 +16,38 @@
 
 # -- Paths ---------------------------------------------------------------------
 
-DB_PATH               <- "data/econrisk_2015.duckdb"
+DB_PATH               <- "data/georisk.duckdb"
 COMTRADE_CSV_DIR      <- "data/comtrade_csv"         # intermediate CSVs from download step
 COMTRADE_PARQUET      <- "data/comtrade_parquet"     # hive-partitioned final parquet
 COMTRADE_SUMMARY_DIR  <- "data/comtrade_summaries"   # CIF/FOB ratio cache
+COMTRADE_MANIFEST     <- "data/comtrade_download_manifest.csv"  # per country-year download status
+COMTRADE_WORLD_DIR    <- "data/comtrade_world"       # reporters' World totals (partner coverage, D-014)
+COMTRADE_WORLD_MANIFEST <- "data/comtrade_world_manifest.csv"  # World-only fetch status (D-023)
+COMTRADE_EXT_CSV_DIR  <- "data/comtrade_csv_ext"     # extension code set: new codes, 2015 on (D-027)
+COMTRADE_EXT_MANIFEST <- "data/comtrade_ext_manifest.csv"  # extension download status
+COMTRADE_EXT_WORLD_DIR <- "data/comtrade_world_ext"  # World totals for the extension codes
 COMMODITY_CODES_CSV   <- "data/all-commodity-codes.csv"
 CROSSWALK_CSV         <- "data/comtrade_price_crosswalk.csv"
 COMTRADE_QTY_CODES_CSV <- "data/comtrade_qty_codes.csv"
 PINK_SHEET_XLSX       <- "data/raw_pink_sheet_price/CMO-Historical-Data-Monthly.xlsx"
+PINK_SHEET_ANNUAL_XLSX <- "data/raw_pink_sheet_price/CMO-Historical-Data-Annual.xlsx"  # MUV deflator (D-025)
+FRED_CACHE_DIR        <- "data/raw_fred"             # cached IMF price series from FRED
 COUNTRY_FRAME_CSV     <- "country_code_frame.csv"
+UCDP_RAW_DIR          <- "data/raw_ucdp"             # UCDP GED + Candidate downloads (D-018)
+UCDP_GED_VERSION      <- "26.1"                      # final GED release; covers 1989 through 2025
+UCDP_CANDIDATE_FIRST_YEAR <- 2021L                   # monthly Candidate releases kept from this year (backtest vintages)
+VIEWS_RAW_DIR         <- "data/raw_views"            # cached ViEWS API responses (D-019)
 MODEL_CACHE_DIR       <- "R/models/cache/"            # brms .rds cache files
 
 # -- Data window ---------------------------------------------------------------
-# 2010 allows rolling-window burn-in (24m weighted vol, 12m YoY) before the
-# first silver output year. TS_START_YR filters what gets written to silver
-# tables; currently matches START_YR so the full history is preserved.
-START_YR            <- 2010L
-TS_START_YR         <- 2010L
-M_TS_START_YR       <- 2015L    # monthly series start: earlier years have sparse Comtrade coverage
+# 2015 is the project's start year (D-027): the first year of every output and
+# of model fitting. Rolling windows (24m weighted vol, 12m YoY) need two years
+# of burn-in; the build-chain work reads 2013-2014 for that and writes nothing
+# before 2015. Core Comtrade files go back to 2010; extension codes start in 2015.
+START_YR            <- 2015L
+TS_START_YR         <- 2015L
+M_TS_START_YR       <- 2015L    # monthly series start
+BURN_IN_START_YR    <- 2013L    # rolling windows read from here; nothing is written before START_YR
 
 # -- Comtrade quality thresholds -----------------------------------------------
 
@@ -65,7 +79,6 @@ TIER_YEAR           <- NULL    # set to e.g. 2024L to restrict tier output to on
 ANTHROPIC_API_KEY   <- Sys.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY      <- Sys.getenv("OPENAI_API_KEY")
 COMTRADE_API_KEY    <- Sys.getenv("COMTRADE_API_KEY")
-# COMTRADE_API_KEY    <- Sys.getenv("COMTRADE_API_KEY_alt")
 
 NARRATIVE_YEAR      <- NULL    # set dynamically in compute_narratives.R from max year in gold.risk_tiers
 

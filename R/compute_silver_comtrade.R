@@ -112,7 +112,7 @@
 #           compute_bayes_d3_annual.R, compute_bayes_d3_monthly.R,
 #           compute_d4_network.R
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)
@@ -127,15 +127,17 @@ if (!exists("con")) stop("No DB connection. Run via run_pipeline.R")
 # -- Config ------------------------------------------------------------------
 # START_YR and TS_START_YR inherited from config.R via run_pipeline.R.
 # Guards below catch standalone sourcing.
-if (!exists("START_YR"))    START_YR    <- 2010L
-if (!exists("TS_START_YR")) TS_START_YR <- 2010L
+if (!exists("START_YR"))    START_YR    <- 2015L
+if (!exists("TS_START_YR")) TS_START_YR <- 2015L
+# Rolling windows read from here (burn-in); outputs start at TS_START_YR (D-027)
+if (!exists("BURN_IN_START_YR")) BURN_IN_START_YR <- START_YR - 2L
 if (!exists("CMD_MIN_USD")) CMD_MIN_USD <- 1e5
 if (!exists("YOY_CAP"))     YOY_CAP     <- 500
 
-COMTRADE_PARQUET <- normalizePath(
-  file.path("..", "commodity-project", "data", "output", "comtrade_parquet"),
-  mustWork = FALSE
-) |> str_replace_all("\\\\", "/")
+# Same parquet as the build, enrichment and bronze steps (config.R).
+if (!exists("COMTRADE_PARQUET")) COMTRADE_PARQUET <- "data/comtrade_parquet"
+parquet_root <- normalizePath(COMTRADE_PARQUET, mustWork = FALSE) |>
+  str_replace_all("\\\\", "/")
 
 WORLD_CODES     <- c("WLD", "_X", "W00")   # excluded from bilateral HHI
 ROLL_SUM_WINDOW <- 12L    # trailing months for rolling sum (r12)
@@ -272,7 +274,7 @@ compute_group_monthly <- function(monthly_grp, wb_pv = NULL) {
 
   # Complete grid: gap months get 0
   complete <- active |>
-    cross_join(expand_grid(year = START_YR:max_yr, month = 1:12)) |>
+    cross_join(expand_grid(year = BURN_IN_START_YR:max_yr, month = 1:12)) |>
     left_join(monthly_grp, by = c("country_code", "commodity_name", "year", "month")) |>
     mutate(value_usd = replace_na(value_usd, 0)) |>
     arrange(country_code, year, month, commodity_name)
@@ -581,14 +583,15 @@ import_price_monthly <- function(where_sql, month_spine) {
 # Setup: re-register parquet view
 message("--- Comtrade silver: registering parquet view ---")
 
-glob <- paste0(COMTRADE_PARQUET, "/**/*.parquet")
-if (!file.exists(COMTRADE_PARQUET))
-  stop("Comtrade parquet not found: ", COMTRADE_PARQUET)
+glob <- paste0(parquet_root, "/**/*.parquet")
+if (!file.exists(parquet_root))
+  stop("Comtrade parquet not found: ", parquet_root)
 
 dbExecute(con, glue("
   CREATE OR REPLACE VIEW comtrade_raw AS
-  SELECT * FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE)
-  WHERE yr >= {START_YR}
+  SELECT p.* FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE) p
+  JOIN bronze.cmd_meta m ON p.cmd_code = m.cmd_code AND m.broad_heading = 0  -- exposure only (D-029)
+  WHERE p.yr >= {BURN_IN_START_YR}
 "))
 message(sprintf("  %s rows available",
   format(dbGetQuery(con, "SELECT COUNT(*) AS n FROM comtrade_raw")$n, big.mark = ",")))

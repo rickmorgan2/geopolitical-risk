@@ -85,7 +85,6 @@ message(sprintf("  [bronze.country_frame] %d countries loaded", nrow(COUNTRY_FRA
 # source("R/ingest_gdp.R") 
 # source("R/ingest_population.R")
 # source("R/ingest_imf.R")
-# source("R/ingest_wgi.R")
 # source("R/ingest_wto.R")
 # source("R/ingest_usgs.R")
 # source("R/ingest_worldbank.R")
@@ -123,87 +122,6 @@ message(sprintf("  [bronze.country_frame] %d countries loaded", nrow(COUNTRY_FRA
 # 
 # # -- Gold: narratives ----------------------------------------------------------
 # 
-source("R/compute_narratives-4-14.R")
+source("R/compute_narratives.R")
 # 
 # message("Pipeline run complete: ", Sys.time())
-
-source("R/view_table.R")
-list_tables()
-narratives <- view_table("gold.narratives", max_rows = 700000) |> 
-  mutate(narrative = str_replace_all(narrative,"enters 2025", "enters 2026"))
- # write_csv(narratives, "shiny/check.csv") 
-# |>
-#   # filter(year > 2014)
-#   mutate(across(contains("_score"), ~round(.x, 2)))
-
-write_gold(narratives, "narratives", con)
-
-unique(check$commodity_group)
-
-
-con <- dbConnect(duckdb(), dbdir = "data/econrisk_2015.duckdb", read_only = TRUE)
-
-dbGetQuery(con, "
-  SELECT table_schema, table_name, column_name, data_type
-  FROM information_schema.columns
-  WHERE table_schema IN ('bronze', 'gold', 'silver')
-  ORDER BY table_schema, table_name, ordinal_position
-") |> as.data.frame() |> 
-  # filter(str_detect(table_name, "d[1-4]_", negate = T)) |> 
-  print(max = 9999) |> 
-  write_csv("check.csv")
-
-
-
-dbDisconnect(con, shutdown = TRUE)
-
-
-# dplyr::filter(year == 2023) |> 
-#   arrange(cat1_score)
-# write_csv(check, "check.csv")
-# #   filter(indicator_code== "GGXCNL_NGDP" & value < -20) |> 
-# #   select(iso3c, year, value) |> 
-# #   arrange(iso3c, year)
-# # write_csv(check, "GGXCNL_NGDP_outliers.csv")
-# # # view_table("silver.comtrade_import_groups_ts")
-# # # df <- view_table("silver.comtrade_export_groups_monthly", max_rows = 5000)
-# 
-# 
-# dbDisconnect(con, shutdown = TRUE)
-
-narratives_wide <- narratives |>
-  pivot_wider(names_from = dimension, values_from = narrative)
-
-narratives <- dbGetQuery(con, "
-  SELECT country_code, country_name, year, dimension, narrative
-  FROM gold.narratives
-  ORDER BY country_code, dimension
-") |> as_tibble()
-
-write_csv(narratives, "check_narratives_long.csv")
-
-
-
-d2_monthly <- dbGetQuery(con, "
-  SELECT *
-  FROM gold.d2_monthly_posterior
-  ORDER BY country_code, year, month
-") |> as_tibble() |> 
-  select(country_name, year, month, risk_score, everything())
-
-head(d2_monthly, n = 20)
-write_csv(d2_monthly, "check_d2m.csv")
-
-d3_monthly <- dbGetQuery(con, "
-  SELECT *
-  FROM gold.d3_monthly_posterior
-  ORDER BY country_code, year, month
-") |> as_tibble()|> 
-  select(country_name, year, month, risk_score, everything())
-
-head(d3_monthly, n = 20)
-write_csv(d3_monthly, "check_d3m.csv")
-
-
-
-# source("R/models/compute_monthly_standin.R")     # demo stand-in

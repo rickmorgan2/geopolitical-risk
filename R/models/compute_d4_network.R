@@ -46,7 +46,7 @@
 #   gold.d4_monthly         country-year-month D4 composite + CI
 #   gold.d4_annual          country-year D4 composite + CI (December snapshot)
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)

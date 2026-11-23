@@ -10,17 +10,16 @@ The pipeline ingests data from multiple public sources, transforms it through a 
 
 I have a lot of experience working with the data sources pulled into this project. Indeed, many of the ingest scripts have origins in other projects that I've done over the years. I unified them for this framework using Anthropic AI's Claude web application. I didn't use Claude Code. Instead, I used Claude (Sonnet 4.6) for code review and refactoring inefficient code. This was very helpful – especially with the SQL code. Claude saved me here. The raw input is 24,000,000 rows. I tried to use `{arrow}` and `{DT}`, but they kept failing. SQL was the necessary move, but I didn't have the skill level needed. Claude plussed me up. 
 
-Helpful, but very dangerous. I know these data. I know what "right" looks like. There were many occasions where Claude was wrong with the math or produced duplicate code (among other quarks). It also had a tendency to resurface elements of a script that had been purposefully removed by me, the human, who knows what their doing. But, here is not where I debate GenAI, but to remind  future me and others who might stumble on this to always check the work of a tool that can't be held accountable for mistakes. 
 
 ---
 
 ## What it produces
 
-Each pipeline run writes a fully updated `econrisk_2015.duckdb` containing:
+Each pipeline run writes a fully updated `georisk.duckdb` containing:
 
 | Layer | What is in it |
 |---|---|
-| **Bronze** | Raw ingested tables from IMF WEO, IMF PCPS, World Bank WDI/WGI, WTO, UN Comtrade, USGS, World Bank Pink Sheet, US Census IDB, GDP/population local files |
+| **Bronze** | Raw ingested tables from IMF WEO, IMF PCPS, World Bank WDI, WTO, UN Comtrade, USGS, World Bank Pink Sheet, US Census IDB, GDP/population local files |
 | **Silver** | Derived indicators: rolling HHIs, volatility metrics, network weights, monthly disruption signals, commodity price enrichment |
 | **Gold** | Bayesian posterior scores (D1-D4), risk tiers, change signals, narratives |
 
@@ -51,7 +50,6 @@ geopolitical-risk/
 |   |-- ingest_comtrade.R           # bronze: read enriched parquet into DuckDB
 |   |-- ingest_imf.R                # bronze: IMF WEO via API
 |   |-- ingest_worldbank.R          # bronze: World Bank WDI via wbstats
-|   |-- ingest_wgi.R                # bronze: World Governance Indicators
 |   |-- ingest_wto.R                # bronze: WTO tariff data
 |   |-- ingest_usgs.R               # bronze: USGS Mineral Commodity Summaries
 |   |-- ingest_gdp.R                # bronze: GDP from local CSV files (context/normalization)
@@ -75,13 +73,12 @@ geopolitical-risk/
 |       |-- cache/                  # brms model cache -- gitignored
 |
 |-- data/                           # gitignored -- must be created locally
-    |-- econrisk_2015.duckdb
+    |-- georisk.duckdb
     |-- comtrade_csv/               # intermediate CSVs from download step
     |-- comtrade_parquet/           # hive-partitioned: iso3c={}/yr={}/ (price-enriched)
     |-- comtrade_summaries/         # CIF/FOB ratio cache
     |-- all-commodity-codes.csv
     |-- raw_usgs/                   # USGS MCS CSVs cached from ScienceBase (auto-created)
-    |-- raw_wgi/                    # manually downloaded WGI Excel file (see ingest_wgi.R)
     |-- raw_wto/                    # WTO tariff ZIPs cached from WTO website (auto-created)
     |-- raw_pink_sheet_price/       # manually downloaded World Bank Pink Sheet Excel file
     |-- gdp_raw/                    # manually obtained GDP CSV files keyed on gwcode
@@ -131,7 +128,7 @@ cmdstanr::install_cmdstan()
 | **Anthropic** | `compute_narratives.R` | [console.anthropic.com](https://console.anthropic.com) |
 | **OpenAI** | `compute_narratives.R` (if any dimension routed to OpenAI in `config.R`) | [platform.openai.com](https://platform.openai.com) |
 
-IMF, World Bank, WGI, WTO, and USGS are all public APIs requiring no key.
+IMF, World Bank, WTO, and USGS are all public APIs requiring no key.
 
 ---
 
@@ -187,18 +184,24 @@ mkdir -p data
 
 3. Obtain the Comtrade parquet data. Two options:
 
-   **Option A -- Download fresh** (requires free Comtrade API key): Uncomment the step 0 lines in `run_pipeline.R`:
+   **Option A -- Download fresh** (requires free Comtrade API key):
    ```r
-   source("R/ingest_comtrade_download.R")   # step 0a: download CSVs
+   source("run_comtrade_update.R")          # the whole update, step by step; source once a day
+   ```
+   or step by step by hand:
+   ```r
+   source("R/ingest_comtrade_download.R")   # step 0a: defines run_comtrade_download()
+   run_comtrade_download(2026)              #          download one year (repeat per year)
+   run_comtrade_world_download(2010:2023)   #          World totals for files that lack them
    source("R/ingest_comtrade_build.R")      # step 0b: build parquet
    source("R/ingest_price_series.R")        # step 0c: enrich parquet with prices
    ```
-   Step 0a writes one CSV per country-year to `data/comtrade_csv/`.
-   Step 0b converts those CSVs to hive-partitioned parquet in `data/comtrade_parquet/`, applies CIF/FOB adjustment, and mirrors missing bilateral flows.
+   Step 0a writes one CSV per country-year to `data/comtrade_csv/` and records every country-year's outcome (`ok`, `no_data`, `error`) in `data/comtrade_download_manifest.csv`.
+   Step 0b converts those CSVs to hive-partitioned parquet in `data/comtrade_parquet/`, applies CIF/FOB adjustment, and mirrors missing bilateral flows. It reprocesses any CSV newer than its parquet partition and rebuilds the mirrored rows of the years it touched.
    Step 0c joins Pink Sheet and IMF PCPS commodity prices into the parquet in-place.
 
    Free API tier: 500 calls/day. 173 countries x 2 commodity chunks = 346 calls per year of data. Full history (2010-present) takes approximately 11 days.
-   `skip_existing = TRUE` in `ingest_comtrade_download.R` lets you resume across sessions without re-downloading completed files.
+   Rerunning `run_comtrade_download()` resumes where the last run stopped (it stops at 480 calls a day or on a quota error). Closed years are not re-requested; the current and previous year are re-downloaded once their files are more than 30 days old, because Comtrade keeps adding months. `dry_run = TRUE` shows what a run would do without calling the API.
 
    **Option B -- Copy existing data** from a prior run or shared storage:
    ```bash
@@ -254,7 +257,6 @@ The diagram below shows the dependency chain enforced by `run_pipeline.R`. An ar
 [Bronze ingest]
   ingest_imf.R
   ingest_worldbank.R
-  ingest_wgi.R
   ingest_wto.R
   ingest_usgs.R
   ingest_gdp.R
@@ -296,7 +298,6 @@ The diagram below shows the dependency chain enforced by `run_pipeline.R`. An ar
 | IMF WEO | GDP, inflation, current account, debt | Twice yearly (Apr/Oct) | Public API |
 | IMF PCPS | Primary commodity prices | Monthly | Public SDMX API |
 | World Bank WDI | Reserves, exchange rates, poverty | Annual (July) | Public API via `wbstats` |
-| World Bank WGI | Governance indicators | Annual | Public Excel download |
 | World Bank Pink Sheet | Commodity price series | Monthly | Manual Excel download |
 | WTO | Tariff schedules, trade policy | Annual | Public API |
 | UN Comtrade | Bilateral trade flows by HS code | Monthly | Subscription API |
@@ -307,7 +308,6 @@ The diagram below shows the dependency chain enforced by `run_pipeline.R`. An ar
 
 - Comtrade: 173 countries, 174 HS codes, 2010-present for burn-in; monthly series from 2015 forward
 - USGS: ~50 mineral commodities, country-level mine production
-- WGI: 2024 is the latest available release; sourced from manual Excel download until the `wbstats` API carries the current year
 - World Bank WDI: tariff indicators discontinued July 2025; see `ingest_wto.R` for current sourcing
 - World Bank Pink Sheet: download `CMO-Historical-Data-Monthly.xlsx` from [worldbank.org/en/research/commodity-markets](https://www.worldbank.org/en/research/commodity-markets) and place at `data/raw_pink_sheet_price/`
 
@@ -319,14 +319,13 @@ The following are excluded from the repository and must be obtained or created l
 
 | Item | Why excluded | Where to get it |
 |---|---|---|
-| `data/econrisk_2015.duckdb` | Too large; regenerated by pipeline | Run `run_pipeline.R` |
+| `data/georisk.duckdb` | Too large; regenerated by pipeline | Run `run_pipeline.R` |
 | `data/comtrade_csv/` | Too large; intermediate download files | Run `ingest_comtrade_download.R` or skip if copying parquet directly |
 | `data/comtrade_parquet/` | Too large; ~10-50 GB depending on history | Run `ingest_comtrade_build.R` + `ingest_price_series.R`, or copy from shared storage |
 | `data/comtrade_summaries/` | Regenerated by build step | Run `ingest_comtrade_build.R` |
 | `data/all-commodity-codes.csv` | Companion to parquet; provided on request | Contact repo maintainer |
 | `R/models/cache/` | Regenerated by brms on first model run | Run pipeline |
 | `data/raw_usgs/` | Auto-created; ScienceBase CSVs cached by ingest script | Run `ingest_usgs.R` (auto-created on first run) |
-| `data/raw_wgi/` | Manually downloaded Excel file; not auto-retrieved | Download from [World Bank WGI](https://www.worldbank.org/en/publication/worldwide-governance-indicators) and place in this folder |
 | `data/raw_wto/` | Auto-created; WTO tariff ZIPs cached by ingest script | Run `ingest_wto.R` (auto-created on first run) |
 | `data/raw_pink_sheet_price/` | Manually downloaded Excel file; not auto-retrieved | Download `CMO-Historical-Data-Monthly.xlsx` from [worldbank.org/en/research/commodity-markets](https://www.worldbank.org/en/research/commodity-markets) |
 | `data/gdp_raw/` | Local CSV files keyed on gwcode; not auto-retrieved | Contact repo maintainer |

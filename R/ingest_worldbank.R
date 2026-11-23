@@ -33,9 +33,7 @@
 #   This table serves as the country spine for joins across all bronze tables
 #   in the silver transform layer (iso3c is the reference key).
 #
-# Note: WGI indicators are ingested separately in ingest_wgi.R.
-#
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(wbstats)
 library(dplyr)

@@ -31,7 +31,7 @@
 #   bronze.imf_ifs_monthly   — empty placeholder (see note above)
 #   bronze.imf_weo_annual    — annual WEO series + 5yr forecasts
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(httr2)
 library(dplyr)

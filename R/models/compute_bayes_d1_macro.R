@@ -24,7 +24,7 @@
 #   gold.d1_macro_posterior   country-year risk scores + CI
 #   gold.d1_indicator_ts      country-year-indicator fitted trajectories
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 # SETUP ####
 

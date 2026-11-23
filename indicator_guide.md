@@ -8,7 +8,6 @@
   - [Commodity Price Data](#commodity-price-data)
   - [IMF World Economic Outlook](#imf-world-economic-outlook)
   - [World Bank WDI](#world-bank-wdi)
-  - [World Bank World Governance Indicators](#world-bank-world-governance-indicators)
   - [WTO Tariff Data](#wto-tariff-data)
   - [USGS Mineral Commodity Summaries](#usgs-mineral-commodity-summaries)
   - [GDP and Population Supplements](#gdp-and-population-supplements)
@@ -40,7 +39,7 @@ All risk scores are on [0, 1] where higher values indicate greater risk. Credibl
 
 ## Raw Data Layer
 
-This section documents the raw data source ingested by the pipeline. All raw data lands in the `bronze` schema of `econrisk_2015.duckdb` before any transformation. The bronze layer is the authoritative, unmodified record of what was pulled from each source and when.
+This section documents the raw data source ingested by the pipeline. All raw data lands in the `bronze` schema of `georisk.duckdb` before any transformation. The bronze layer is the authoritative, unmodified record of what was pulled from each source and when.
 
 The universal country key across all tables is `iso3c` (ISO 3166-1 alpha-3). All ingest scripts filter to the 175 countries defined in `bronze.country_frame`.
 
@@ -296,36 +295,6 @@ Note: WDI tariff indicators were discontinued in the July 2025 WDI update. Curre
 
 ---
 
-### World Bank World Governance Indicators
-
-**Script:** `ingest_wgi.R`
-
-**Source:** Manual Excel download from [World Bank WGI](https://www.worldbank.org/en/research/brief/world-governance-indicators). File must be placed at `data/raw_wgi/`. The `wbstats` API does not carry the current year's WGI release; the Excel file is the authoritative source until the API catches up.
-
-**Bronze table:** `bronze.wb_wgi_raw`
-
-Same long schema as `bronze.wb_wdi_raw` for consistent downstream joins: `country_code`, `country_name`, `indicator_id`, `indicator_label`, `period`, `value`, `std_error`, `lower_ci`, `upper_ci`, `pull_ts`.
-
-**Indicators ingested**
-
-| Sheet | Indicator | Scale | Interpretation |
-|-------|-----------|-------|----------------|
-| `rq` | `regulatory_quality` | [-2.5, +2.5] | Higher = better regulatory environment |
-| `cc` | `control_of_corruption` | [-2.5, +2.5] | Higher = less corruption |
-
-**Additional WGI dimensions available but not currently ingested** (add sheet codes to `WGI_DIMS` in `ingest_wgi.R` to activate):
-
-| Sheet | Dimension |
-|-------|-----------|
-| `va` | Voice and accountability |
-| `pv` | Political stability / absence of violence |
-| `ge` | Government effectiveness |
-| `rl` | Rule of law |
-
-**Update frequency:** Annual (2024 release is the latest available as of this writing).
-
----
-
 ### WTO Tariff Data
 
 **Script:** `ingest_wto.R`
@@ -454,7 +423,6 @@ Complete reference of all bronze tables written by the pipeline, in execution or
 | `bronze.price_lookup` | `ingest_price_series.R` | cmd_code-year-month | Unified commodity price by HS code |
 | `bronze.wb_wdi_raw` | `ingest_worldbank.R` | country-year-indicator | World Bank WDI: 25 indicators, long format |
 | `bronze.wb_countries_raw` | `ingest_worldbank.R` | country | WB country metadata: region, income level, etc. |
-| `bronze.wb_wgi_raw` | `ingest_wgi.R` | country-year-indicator | WGI: regulatory quality and control of corruption |
 | `bronze.wto_tariff_summary` | `ingest_wto.R` | country-scope | WTO Tariff Profiles cross-sectional summary |
 | `bronze.wto_tariff_sectors` | `ingest_wto.R` | country-mtb_group | Bound/applied rates by MTN product group |
 | `bronze.wto_export_partners` | `ingest_wto.R` | country-scope-rank | Top 5 export partner tariff rates |
@@ -587,15 +555,13 @@ Source: `silver.bilateral_category_shares` (computed in `compute_silver_comtrade
 
 **Gold table:** `gold.context_indicators`
 
-Context indicators are excluded from the Bayesian models due to high missingness or annual-only availability, but are surfaced as dashboard annotations. Their presence enriches interpretation; their absence does not degrade the modelled risk score.
+Context indicators are excluded from the Bayesian models due to high missingness or annual-only availability, but are surfaced as dashboard annotations. Their presence enriches interpretation; their absence does not degrade the modeled risk score.
 
 | Indicator | Source | Threshold / Notes |
 |-----------|--------|-------------------|
 | `reserves_months_imports` | World Bank WDI | Warn < 3 months |
 | `ext_debt_to_reserves` | IMF / WDI | Warn > 1.0 |
 | `debt_service_ratio` | World Bank WDI | Warn > 20% |
-| `regulatory_quality` | World Bank WGI | Warn < 0 |
-| `control_of_corruption` | World Bank WGI | Warn < 0 |
 | `major_producer` | USGS | TRUE = >5% global share in at least one mineral |
 | `n_dominant_minerals` | USGS | Count of minerals where global production share > 5% |
 | `most_concentrated_mineral` | USGS | Mineral with highest global HHI among minerals where country has >1% share |
@@ -623,4 +589,4 @@ Tiers are assigned annually from the four dimensional scores. Classification pro
 | Moderate | >= 0.30 | 1+ dim above 0.40 |
 | Low | catch-all | – |
 
-3. **Context flag boost:** Active alert flags (reserves, external debt, debt service, governance) raise a country one tier above its pattern-rule assignment.
+3. **Context flag boost:** Active alert flags (reserves, external debt, debt service) raise a country one tier above its pattern-rule assignment.

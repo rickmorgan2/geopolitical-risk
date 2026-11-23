@@ -36,7 +36,7 @@
 #   bronze.usgs_production   country-mineral-year, mine production qty + unit
 #   bronze.usgs_reserves     mineral-edition, world total reserves qty + unit
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(sbtools)
@@ -68,7 +68,7 @@ MCS_YEAR_RANGE <- 2022:2026  # editions to fetch; extend to go further back
 #   bronze.usgs_production   country-mineral-year, mine production qty + unit
 #   bronze.usgs_reserves     mineral-edition, world total reserves qty + unit
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 # -- Mineral crosswalk ---------------------------------------------------------
 # comtrade commodity_name → USGS MCS commodity name as it appears in ScienceBase
@@ -341,7 +341,7 @@ parse_mcs2025_consolidated <- function(csv_path, usgs_targets, mcs_edition) {
   )
   if (is.null(raw) || nrow(raw) == 0) return(list(production = NULL, reserves = NULL))
 
-  # Normalise column names — strip internal spaces (e.g. "PROD_EST_ 2024")
+  # Normalize column names — strip internal spaces (e.g. "PROD_EST_ 2024")
   names(raw) <- str_replace_all(names(raw), "\\s+", "_")
 
   # Filter to target commodities (case-insensitive match against COMMODITY column)

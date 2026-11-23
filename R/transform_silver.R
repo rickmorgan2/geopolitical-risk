@@ -35,7 +35,7 @@
 #
 #   silver.fdi_trend_flags  — consecutive negative FDI years, warning flag
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)

@@ -1,6 +1,6 @@
 # view_table.R
 #
-# Utility: pull any schema.table from econrisk.duckdb into R and open in View().
+# Utility: pull any schema.table from georisk.duckdb into R and open in View().
 # Expects: `con` (DBI connection) to be in scope.
 #
 # Usage:

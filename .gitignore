@@ -18,3 +18,4 @@ r/archive/
 r/models/archive/
 r/models/cache/
 
+.claude/settings.local.json

@@ -13,7 +13,7 @@ library(countrycode)
 `%||%` <- function(a, b) if (!is.null(a) && length(a) > 0 && !all(is.na(a))) a else b
 
 # DB connection (read-only)
-db_path <- file.path("data", "econrisk_2015.duckdb")
+db_path <- file.path("data", "georisk.duckdb")
 drv     <- duckdb(dbdir = db_path, read_only = TRUE)
 con     <- dbConnect(drv)
 
@@ -38,8 +38,6 @@ score_color <- function(x) {
     TRUE      ~ "#859C72"
   )
 }
-
-brand_vis <- c("#5D8FA3", "#8B9C6B", "#C4A563", "#B8795E", "#954B5C", "#8B6F9E")
 
 # Dimension lookup table
 dim_meta <- tibble(
@@ -162,14 +160,6 @@ svg_spark <- function(values, color = "#5D8FA3", type = "line", height = 52) {
     '<svg viewBox="0 0 %d %d" width="100%%" height="%dpx" preserveAspectRatio="none" style="display:block;margin-top:2px">%s</svg>',
     vw, height, height, body
   ))
-}
-
-# echarts4r: standard grid + crosshair tooltip
-e_brand <- function(chart, left = "10%", right = "5%", top = "12%", bottom = "20%") {
-  chart |>
-    e_grid(left = left, right = right, top = top, bottom = bottom) |>
-    e_tooltip(trigger = "axis",
-              axisPointer = list(type = "cross", crossStyle = list(color = "#bbb")))
 }
 
 # Source URL lookup

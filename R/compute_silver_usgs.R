@@ -39,7 +39,7 @@
 #   silver.critical_mineral_profile   country-mineral-year production context
 #   silver.critical_mineral_global    mineral-year global supply concentration
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)

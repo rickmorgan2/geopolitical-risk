@@ -6,7 +6,7 @@
 # missingness (> 30%) or annual-only grain, but remain analytically valuable
 # when present. Rather than discarding them, this script assembles them into
 # a clean context table that the dashboard narrative layer can join to country
-# cards to enrich interpretation of the modelled risk scores.
+# cards to enrich interpretation of the modeled risk scores.
 #
 # The pattern: if data exists for a country-year, surface it; if not, the
 # risk score stands on its own without degrading from absence.
@@ -16,10 +16,6 @@
 #     reserves_months_imports  -- FX reserve adequacy; warn < 3 months
 #     ext_debt_to_reserves     -- external debt vs. reserve buffer; warn > 1
 #     debt_service_ratio       -- debt service / export earnings; warn > 20%
-#
-#   bronze.wb_wgi_raw (written by ingest_wgi.R):
-#     regulatory_quality       -- WGI [-2.5, +2.5]; higher = better
-#     control_of_corruption    -- WGI [-2.5, +2.5]; higher = less corrupt
 #
 #   silver.critical_mineral_profile (written by compute_silver_usgs.R):
 #     major_producer flag      -- production_share > 5% in any mineral
@@ -34,7 +30,7 @@
 # -- Output -------------------------------------------------------------------
 #   gold.context_indicators  country-year, all context indicators + flags
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(DBI)
 library(dplyr)
@@ -71,7 +67,7 @@ spine <- dbGetQuery(con, glue::glue("
 # BLOCK 1: External buffer indicators (from silver.macro_derived)
 # reserves_months_imports, ext_debt_to_reserves, debt_service_ratio
 
-message("  [1/6] External buffer indicators from silver.macro_derived")
+message("  [1/5] External buffer indicators from silver.macro_derived")
 
 ext_buffer <- dbGetQuery(con, "
   SELECT country_code, year,
@@ -92,51 +88,9 @@ ext_buffer <- dbGetQuery(con, "
     debt_service_available = !is.na(debt_service_ratio)
   )
 
-# BLOCK 2: WGI governance indicators (from bronze.wb_wgi_raw)
+# BLOCK 2: Critical mineral producer flags (from silver.critical_mineral_profile)
 
-message("  [2/6] WGI governance indicators from bronze.wb_wgi_raw")
-
-# Check if WGI table exists before querying
-wgi_tables <- dbGetQuery(con,
-  "SELECT table_name FROM information_schema.tables
-   WHERE table_schema = 'bronze' AND table_name = 'wb_wgi_raw'"
-)$table_name
-
-if (length(wgi_tables) > 0) {
-  wgi <- dbGetQuery(con, "
-    SELECT country_code, period AS year, indicator_label, value
-    FROM bronze.wb_wgi_raw
-    WHERE indicator_label IN ('regulatory_quality', 'control_of_corruption')
-  ") |>
-    as_tibble() |>
-    pivot_wider(names_from = indicator_label, values_from = value) |>
-    mutate(
-      # Composite governance score: mean of available WGI dimensions
-      governance_score      = rowMeans(
-        cbind(regulatory_quality, control_of_corruption), na.rm = TRUE
-      ),
-      governance_available  = !is.na(regulatory_quality) | !is.na(control_of_corruption),
-      # Warn flag: governance score below -1 (weak institutions)
-      governance_weak       = !is.na(governance_score) & governance_score < -1
-    )
-  message(sprintf("    WGI: %d country-years | %d countries",
-                  nrow(wgi), n_distinct(wgi$country_code)))
-} else {
-  message("    WGI table not found -- run ingest_wgi.R first. Filling with NAs.")
-  wgi <- spine |>
-    select(country_code, year) |>
-    mutate(
-      regulatory_quality    = NA_real_,
-      control_of_corruption = NA_real_,
-      governance_score      = NA_real_,
-      governance_available  = FALSE,
-      governance_weak       = FALSE
-    )
-}
-
-# BLOCK 3: Critical mineral producer flags (from silver.critical_mineral_profile)
-
-message("  [3/6] Critical mineral flags from silver.critical_mineral_profile")
+message("  [2/5] Critical mineral flags from silver.critical_mineral_profile")
 
 cm_tables <- dbGetQuery(con,
   "SELECT table_name FROM information_schema.tables
@@ -196,10 +150,10 @@ if (length(cm_tables) > 0) {
     )
 }
 
-# BLOCK 4: Food import price volatility (from silver.comtrade_import_groups_ts)
+# BLOCK 3: Food import price volatility (from silver.comtrade_import_groups_ts)
 # cv_basket_wtd, price_vol_cv for the food commodity group
 
-message("  [4/6] Food import price volatility from silver.comtrade_import_groups_ts")
+message("  [3/5] Food import price volatility from silver.comtrade_import_groups_ts")
 
 fv_tables <- dbGetQuery(con,
                         "SELECT table_name FROM information_schema.tables
@@ -243,10 +197,10 @@ if (length(fv_tables) > 0) {
 
 
 # ==============================================================================
-# BLOCK 5: GDP (from bronze.gdp_annual)
+# BLOCK 4: GDP (from bronze.gdp_annual)
 # ==============================================================================
 
-message("  [5/6] GDP from bronze.gdp_annual")
+message("  [4/5] GDP from bronze.gdp_annual")
 
 gdp_tables <- dbGetQuery(con,
   "SELECT table_name FROM information_schema.tables
@@ -277,9 +231,9 @@ if (length(gdp_tables) > 0) {
     )
 }
 
-# BLOCK 6: Population (from bronze.population_annual)
+# BLOCK 5: Population (from bronze.population_annual)
 
-message("  [6/6] Population from bronze.population_annual")
+message("  [5/5] Population from bronze.population_annual")
 
 pop_tables <- dbGetQuery(con,
   "SELECT table_name FROM information_schema.tables
@@ -310,8 +264,6 @@ if (length(pop_tables) > 0) {
 context_indicators <- spine |>
   left_join(ext_buffer,     by = c("country_code", "year"),
             relationship = "one-to-one") |>  # one ext_buffer row per country-year
-  left_join(wgi,            by = c("country_code", "year"),
-            relationship = "one-to-one") |>  # one WGI row per country-year
   left_join(cm_context,     by = c("country_code", "year"),
             relationship = "one-to-one") |>  # one mineral profile row per country-year
   left_join(food_price_vol, by = c("country_code", "year"), relationship = "one-to-one") |>
@@ -319,7 +271,7 @@ context_indicators <- spine |>
   left_join(pop_context,    by = c("country_code", "year"), relationship = "one-to-one") |>
   mutate(
     across(ends_with("_available"), \(x) replace_na(x, FALSE)),
-    across(ends_with("_low") | ends_with("_high") | ends_with("_weak"),
+    across(ends_with("_low") | ends_with("_high"),
            \(x) replace_na(x, FALSE)),
     major_producer           = replace_na(major_producer, FALSE),
     cm_available             = replace_na(cm_available, FALSE),
@@ -354,8 +306,6 @@ message(sprintf("    ext_debt_to_reserves    : %d countries",
                 sum(ctx_recent$ext_debt_available)))
 message(sprintf("    debt_service_ratio      : %d countries",
                 sum(ctx_recent$debt_service_available)))
-message(sprintf("    WGI governance          : %d countries",
-                sum(ctx_recent$governance_available)))
 message(sprintf("    Critical mineral producers: %d countries",
                 sum(ctx_recent$major_producer)))
 message(sprintf("  Alert flags (%d):", recent_yr))
@@ -365,8 +315,6 @@ message(sprintf("    ext_debt_high (> 1x)    : %d countries",
                 sum(ctx_recent$ext_debt_high)))
 message(sprintf("    debt_service_high (>20%%): %d countries",
                 sum(ctx_recent$debt_service_high)))
-message(sprintf("    governance_weak (< -1)  : %d countries",
-                sum(ctx_recent$governance_weak)))
 message(sprintf("    food_price_vol_high     : %d countries",
                 sum(ctx_recent$food_price_vol_high)))
 message(sprintf("    gdp_available           : %d countries",

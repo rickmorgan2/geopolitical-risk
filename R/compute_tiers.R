@@ -14,7 +14,7 @@
 #      Critical immediately regardless of others (floor override).
 #   2. Pattern rules (applied in order): mean score and count of dimensions
 #      above tier-specific thresholds determine tier for all other cases.
-#   3. Context flag boost: active alert flags (reserves, governance, debt)
+#   3. Context flag boost: active alert flags (reserves, external debt, debt service)
 #      can bump a country up one tier.
 #
 # Output: gold.risk_tiers
@@ -179,13 +179,12 @@ ctx <- dbGetQuery(con, "
   SELECT country_code, year,
     COALESCE(reserves_low,      FALSE) AS reserves_low,
     COALESCE(ext_debt_high,     FALSE) AS ext_debt_high,
-    COALESCE(debt_service_high, FALSE) AS debt_service_high,
-    COALESCE(governance_weak,   FALSE) AS governance_weak
+    COALESCE(debt_service_high, FALSE) AS debt_service_high
   FROM gold.context_indicators
 ") |>
   as_tibble() |>
   mutate(n_flags = as.integer(reserves_low) + as.integer(ext_debt_high) +
-           as.integer(debt_service_high) + as.integer(governance_weak))
+           as.integer(debt_service_high))
 
 # ==============================================================================
 # JOIN AND CLASSIFY

@@ -65,7 +65,7 @@
 #   serve the current edition. ZIPs cached locally for 30 days.
 #   Delete data/raw/TariffProfiles*.zip to force a fresh download.
 #
-# Expects: `con` (DBI connection to econrisk.duckdb) from run_pipeline.R
+# Expects: `con` (DBI connection to georisk.duckdb) from run_pipeline.R
 
 library(httr2)
 library(readxl)

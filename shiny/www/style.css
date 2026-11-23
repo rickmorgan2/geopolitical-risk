@@ -94,7 +94,7 @@ a:hover { color: var(--brand-accent); text-decoration: none; }
   padding:   8px 20px 0;
 }
 
-/* Row 1: logo + country selector + about link */
+/* Row 1: wordmark + country selector + about link */
 .topbar-row {
   display:         flex;
   align-items:     center;
@@ -103,11 +103,15 @@ a:hover { color: var(--brand-accent); text-decoration: none; }
   border-bottom:   1px solid #eaecf0;
 }
 
-.topbar-logo {
-  height:     34px;
-  width:      auto;
-  flex-shrink: 0;
-  filter:     drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+.topbar-wordmark {
+  font-family:    'Oswald', sans-serif;
+  font-size:      1.35rem;
+  font-weight:    600;
+  letter-spacing: 0.02em;
+  line-height:    34px;
+  color:          var(--brand-primary);
+  white-space:    nowrap;
+  flex-shrink:    0;
 }
 
 .topbar-selector {
