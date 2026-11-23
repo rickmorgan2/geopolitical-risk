@@ -51,7 +51,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 - **History rewrite, steps 1–5 of D-001** (owner's go-ahead):
   1. `main` fast-forwarded locally to `960cfa1` (`git fetch . fix/comtrade-download:main`); nothing pushed.
   2. `git-filter-repo` installed with `pip --user` (version a40bce548d2c); run it as `python -m git_filter_repo`.
-  3. Full mirror backup of the original history: `..\geopolitical-risk-backup.git` (all four refs).
+  3. Full mirror backup of the original history: `..\geopolitical-risk-backup.git` (all four refs; deleted after the push, owner's request).
   4. Fresh clone `..\geopolitical-risk-rewrite`, rewritten with `--invert-paths` for the 14 archived branded paths (the old app copies, wireframes, logo, four CSS files, root `style.css`, plus `check.csv` and `files.zip`, which holds an old app copy) and 14 `--replace-text` rules for the six kept files. The rule files are in the session scratchpad (`rewrite_paths.txt`, `rewrite_rules.txt`).
   5. Verified: no hit for the old name in any file, path, patch or message of any commit; the tip tree is identical to `960cfa1` (`ff0120c`); authors, dates and messages unchanged; `.git` went from 4.4 MB to 2.2 MB.
 
@@ -91,7 +91,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
   - Owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
 - **Remediation:**
   - Phase 1, nearly done. Still to do:
-    - **After the rewrite:** GitHub may keep the old commits reachable by ID for a while; GitHub Support can purge them if that matters. `..\geopolitical-risk-backup.git` (original history) and `..\geopolitical-risk-rewrite` (the push clone) stay until the owner says to delete them. `fix/comtrade-download` and `main` are the same commit; the branch can be deleted.
+    - **After the rewrite:** GitHub may keep the old commits reachable by ID for a while; GitHub Support can purge them if that matters. The backup mirror and the push clone were deleted at the owner's request after the push was verified, so the original history no longer exists locally. `fix/comtrade-download` and `main` are the same commit; the branch can be deleted.
     - **`.env`:** the owner renames or removes the old-branded Comtrade key name.
     - The 3-month-smoothing script, after the Phase 3 decision.
   - Phase 3 (the silver fixes) not started; it includes the 3-month smoothing decision.
