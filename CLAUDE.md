@@ -48,14 +48,14 @@ The DuckDB file is `data/georisk.duckdb` (`DB_PATH` in `config.R`), with schemas
 - **Tests:** `Rscript -e 'testthat::test_dir("tests/testthat")'` from the repo root.
 - **Pipeline:** open the `.Rproj` (or `setwd` to the repo root), then `source("run_pipeline.R")`. Most steps in `run_pipeline.R` are currently commented toggles. A single script runs once `config.R` is sourced and `con` exists (see README "Partial runs").
 - **Comtrade download:** `source("run_comtrade_update.R")` runs the agreed sequence step by step (D-023). Source it once a day; it resumes and shares one daily budget. Single calls: `source("R/ingest_comtrade_download.R")`, then `run_comtrade_download(<year>)` or `run_comtrade_world_download(<years>)`.
-  - Two code sets (D-027), set by `code_set` in `data/all-commodity-codes.csv`: `core` (174 codes, from 2010) and `ext` (55 codes, from 2015, in their own folders and manifest via `run_comtrade_ext_download()`).
+  - Two code sets (D-027), set by `code_set` in `data/all-commodity-codes.csv`: `core` (174 codes, from 2010) and `ext` (55 codes, from 2013 with 2013–2014 as burn-in only, in their own folders and manifest via `run_comtrade_ext_download()`). Don't edit `run_comtrade_update.R` while a background run is using it: Rscript reads the script as it goes.
   - Use `dry_run = TRUE` (or `PREVIEW_ONLY <- TRUE` before sourcing the step script) to preview without calling the API.
   - Only one R session may download at a time: two runs overwrite each other's manifest.
   - The free tier allows 500 calls/day and 100k rows per call.
   - Never list partner countries in the request: URLs around 2,000 characters get HTTP 414. See D-003.
 - **Comtrade build and prices:** `run_comtrade_update.R` runs the build steps once downloads are complete. For a full rebuild, set `FORCE_UPDATE <- TRUE` before sourcing `R/ingest_comtrade_build.R`.
   - Before a rebuild, refresh the Pink Sheet with `download_pink_sheet()` (source `config.R` and `R/pink_sheet.R`). The previous monthly file is kept for the precision splice.
-  - Prices come from `price_source` in `data/comtrade_price_crosswalk.csv` (D-029). Codes marked `none`, and broad headings, count for exposure only.
+  - Prices come from `price_source` in `data/comtrade_price_crosswalk.csv` (D-029). Codes marked `none`, and broad headings, count for exposure only. Manufactured codes (`manufactured` = 1: chips, magnets, arms, explosives) stay out of commodity totals, shares and baskets and have their own table, `bronze.comtrade_manufactured_trade` (D-032).
   - Both the build and the price step write to a staging folder and swap it in. A failed check leaves the parquet unchanged.
 - **Models:** use `BAYES_ALGO = "pathfinder"` for development and `"sampling"` for publication. A full MCMC run took about 8.5 hours. The brms cache lives in `R/models/cache/` (gitignored).
 - **App:** `shiny::runApp("shiny")`.

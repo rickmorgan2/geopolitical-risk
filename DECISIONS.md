@@ -366,6 +366,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
     USGS annual prices and Kimberley Process values are checks, not inputs.
   - **Cobalt and lithium** are priced from Comtrade unit values.
   - **Fertilizers:** 3103 is relabeled phosphatic fertilizers (superphosphates) and priced with TSP. DAP is covered by 3105. 283523, labeled TSP, is trisodium phosphate (merged into 283529 in HS2007) and is retired: `in_data` FALSE, kept in the download list like plywood.
+  - **Health codes retired (owner, 2026-11-23):** 3002 (by value mostly biologic drugs, not just vaccines) and 3004 (medicaments) are `in_data` FALSE and stay in the download list. Human vaccines alone would be 300220 (HS2012–2017) and 300241 (HS2022).
 
 ## D-030 — Remediation scope after the change of direction
 - **Date:** 2026-11-23
@@ -386,3 +387,28 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 - **Consequences:**
   - A local copy survives even for files the Phase 1 history rewrite will purge from git.
   - D-001 still applies: the archive is not scrubbed of legacy branding.
+
+## D-032 — Manufactured goods kept apart from commodity totals
+- **Date:** 2026-11-23
+- **Status:** Accepted (owner). Implemented 2026-11-23 in the crosswalk, `R/ingest_comtrade.R` and `R/compute_silver_comtrade.R`; not yet committed. The live database picks it up at the next bronze and silver run.
+- **Context:**
+  - The extension set (D-027) added chips, magnets, arms and explosives. None has a price, but they counted in the tracked-trade totals behind D2's group shares, D3's export independence and the bronze exposure table.
+  - In 2023 data for 23 reporters, including them moved China's D3 export independence from 0.31 to 0.83 and Burkina Faso's food import share from 92% to 69%.
+  - D2 and D3 come from the earlier project, but the owner keeps them: they still make sense as economic inputs.
+- **Decision:**
+  - A `manufactured` column (1 or 0) in `data/comtrade_price_crosswalk.csv` and `data/all-commodity-codes.csv` marks 8541, 8542, 850511, 93, 8710, 8806, 3602 and 3603 (and the retired 3002 and 3004).
+  - The commodity views in bronze and silver leave manufactured codes out, so commodity totals, shares, concentration measures and price baskets use commodities only.
+  - Manufactured goods stay in the data and get their own table, `bronze.comtrade_manufactured_trade`: annual value, mirror share, months reported, partner count, partner HHI and top partner, by country, year, flow and group (Semiconductors, Magnets, Arms, Explosives).
+  - Jewelry (7113) stays a commodity: it is mostly gold.
+- **Consequences:**
+  - Commodity totals fall where manufactured trade is large (Australia's 2023 tracked imports: $69.8bn to $56.4bn, with the health codes retired too), and food and energy shares rise accordingly.
+  - Forecast features built from manufactured trade (arms import surges, chip-supplier dependence) wait for the design-doc review.
+
+## D-033 — SIPRI arms transfers as a candidate forecast input
+- **Date:** 2026-11-23
+- **Status:** Proposed. The owner asked for a review; adoption waits for the design-doc review.
+- **Context:** Comtrade chapter 93 and 8710 cover small arms, ammunition and armored vehicles but are under-reported, and several reporters withhold them. SIPRI's Arms Transfers Database covers major conventional weapons from 1950 to 2025 (updated 9 March 2026), measured in trend-indicator values (TIV), a volume measure rather than a price.
+- **Proposal:**
+  - Ingest SIPRI TIV by recipient-year (and supplier), lagged to the March release, as an annual input alongside Comtrade arms trade. The two complement each other: SIPRI excludes small arms, ammunition and trucks, which Comtrade covers.
+  - Download through the public CSV exports behind armstransfers.sipri.org, or ask SIPRI for bulk access. Keep the raw files in `data/` (gitignored); publish only derived features, with citation.
+- **Open questions:** whether the project counts as non-commercial under SIPRI's terms; whether to use deliveries or orders; whether to smooth single-year TIV, which is lumpy.

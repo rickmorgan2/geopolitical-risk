@@ -590,7 +590,9 @@ if (!file.exists(parquet_root))
 dbExecute(con, glue("
   CREATE OR REPLACE VIEW comtrade_raw AS
   SELECT p.* FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE) p
-  JOIN bronze.cmd_meta m ON p.cmd_code = m.cmd_code AND m.broad_heading = 0  -- exposure only (D-029)
+  JOIN bronze.cmd_meta m ON p.cmd_code = m.cmd_code
+                        AND m.broad_heading = 0   -- exposure only (D-029)
+                        AND m.manufactured = 0    -- commodities only (D-032)
   WHERE p.yr >= {BURN_IN_START_YR}
 "))
 message(sprintf("  %s rows available",

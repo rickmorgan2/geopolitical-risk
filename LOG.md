@@ -6,6 +6,81 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 ## 2026-11-23
 
+### Manufactured goods kept apart; health codes retired; SIPRI arms transfers reviewed (uncommitted; D-029, D-032, D-033)
+
+**Task:** decide what 3002 was for, keep chips, magnets, arms and explosives out of commodity totals without losing them (option 2), and look into SIPRI arms transfer data.
+
+**What changed**
+- **3002 and 3004 retired (owner, D-029):** 3002 ("vaccines and blood products") is by value mostly biologic drugs, and 3004 is medicaments; both are manufactured and unpriced. They are `in_data` FALSE and stay in the download list. Active codes: 224 (216 commodity, 8 manufactured).
+- **`manufactured` flag (D-032):** a new last column in `data/comtrade_price_crosswalk.csv` and `data/all-commodity-codes.csv`; 1 for 8541, 8542, 850511, 93, 8710, 8806, 3602, 3603 and the retired 3002 and 3004. Backups before the change: `data/old/*_before_manufactured_2026-11-23.csv`. The downloader, build and price step read both files by column name, so the extra column is safe.
+- **`R/ingest_comtrade.R`:** `cmd_meta` carries `manufactured`; the commodity view `comtrade_raw` joins only `broad_heading = 0 AND manufactured = 0`; a second view, `comtrade_manufactured`, feeds the new section F, which writes `bronze.comtrade_manufactured_trade` (country, year, flow, group: constant and nominal value, mirror share, months reported, partners, partner HHI, top partner and its share).
+- **`R/compute_silver_comtrade.R`:** its `comtrade_raw` view also requires `manufactured = 0`.
+- **Checked on a scratch copy of the database** (`ingest_comtrade.R` run there, not on the live file):
+  - `bronze.cmd_meta`: 216 commodity codes, 8 manufactured; 283523, 3002 and 3004 gone.
+  - No manufactured code in any commodity table.
+  - `comtrade_manufactured_trade`: rows for 120 countries for semiconductor imports and 82 for arms imports (2015–2026), mostly from partner reports until the extension downloads finish.
+
+  | 2023 imports | Tracked total before | After | Food share before | After |
+  |---|---|---|---|---|
+  | Australia | $69.8bn | $56.4bn | 6.3% | 7.9% |
+  | Argentina | $14.7bn | $11.9bn | 6.7% | 8.3% |
+  | Azerbaijan | $4.3bn | $3.7bn | 30.2% | 35.6% |
+
+  The drops include the retired health codes (Australia's 3002 alone was $4.6bn). Australia's 2023 arms imports: $525m from 55 partners, 41% from the US; semiconductors $1.8bn, 79% from China.
+- **Silver, same scratch copy:** `compute_silver_comtrade.R` ran in 7.5 minutes with no errors. 2023 shares in the silver group tables (D3 export independence is 1 minus the priced share):
+
+  | | Food share of imports (D2) | Priced share of exports (D3) |
+  |---|---|---|
+  | Australia | 0.063 → 0.079 | 0.930 → 0.941 |
+  | Argentina | 0.067 → 0.083 | 0.911 → 0.927 |
+  | Azerbaijan | 0.302 → 0.356 | 0.985 → 0.985 |
+  | Angola | 0.293 → 0.316 | 0.953 → 0.953 |
+  | Armenia | 0.107 → 0.114 | 0.579 → 0.588 |
+
+  Only reporters whose extension files reached the parquet before the rebuild show a change so far.
+- **SIPRI review (D-033, Proposed):** see Why / decisions.
+- **Docs:** D-029 status (health codes), D-032 added (accepted), D-033 added (proposed). CLAUDE.md: the price-tier line notes the flag and the new table; the code-set line now says the extension codes start in 2013 (burn-in), and warns against editing `run_comtrade_update.R` during a run. Design doc (owner's request): a SIPRI row in the data-sources table, Geopolitics layer, marked proposed (rev 70).
+
+**Why / decisions**
+- **Keep manufactured goods, apart (owner):** chips, magnets, arms and explosives stay in the data. D2 and D3 come from the earlier project, but the owner keeps them as economic inputs. Option 2 keeps their commodity meaning clean.
+- **SIPRI Arms Transfers Database, what was found:**
+  - Covers major conventional weapons from 1950 to 2025; updated once a year (latest 9 March 2026), and each update replaces all earlier data.
+  - Values are trend-indicator values (TIV): a volume measure of military capability built from unit production costs, not prices or sales. SIPRI advises using them for trends, shares and volume comparisons.
+  - Excludes small arms and light weapons (except portable guided missiles), artillery under 100 mm, ammunition, trucks, components and services. Comtrade chapter 93 covers much of that, so the two complement each other.
+  - **Access:** the app's "Download as CSV" buttons post a JSON filter to public routes on `atbackend.sipri.org/api/p/trades/`: `import-export-csv/` for TIV tables and `trade-register-csv/` for deal-level registers. No login is needed; the routes are undocumented. SIPRI also takes bulk-access requests.
+  - **Terms:** free for non-commercial use with citation; reproducing more than 10% of a data set needs permission; commercial use needs a license.
+  - **Research:** Pamp et al. (2018, *JPR*) find arms imports raise the odds of civil-war onset, using instruments. A 2026 working paper (Balestra and Caruso) finds delivery spikes precede onset in Sub-Saharan Africa. Other studies are mixed, and none found is an out-of-sample forecast.
+  - **Fit for the forecast:** annual and lumpy, available with a lag of about two and a half months after the year ends. It would enter as a lagged annual feature, like V-Dem.
+
+**What failed**
+- **SIPRI pages in the fetch tool:** both sipri.org pages timed out twice, and armstransfers.sipri.org is a JavaScript app with no readable text. Reading the app's script from R (`httr`) worked; that is how the export routes were found.
+
+**Open threads**
+- **Live database:** bronze and silver pick up D-032 and the retired codes at the next `ingest_comtrade.R` and `compute_silver_comtrade.R` run (the build steps after the downloads finish), followed by the models if scores are needed.
+- **SIPRI (D-033):** the owner decides after the design-doc review; open questions are the commercial-use status, deliveries versus orders, and smoothing.
+- **Manufactured features:** arms-import surges and chip-supplier dependence wait for the design-doc review.
+- **Extension download:** day 1 finished at 22:27 UTC on its 478-call budget: 478 country-years (303 ok, 175 no data; 40 countries), 2015–2026 only.
+  - Left: about 1,944 country-years (1,598 for 2015–2026 plus 346 for 2013–2014). Source `run_comtrade_update.R` once per UTC day until done, around November 28; day 2 can start after 00:00 UTC on November 24.
+  - Its build steps then run incrementally and pick up the new extension CSVs.
+- **Still to do (D-029):** the USGS and Kimberley price checks.
+- **Forecast plan:**
+  - The owner reviews the design doc first; no modeling before that.
+  - Then the UCDP Candidate and ViEWS refresh routines and the country-month panel.
+  - V-Dem is deferred (D-026).
+  - Owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
+- **Remediation:**
+  - Phase 1: the `.env` key rename (owner); the 3-month-smoothing script after the Phase 3 decision. GitHub may keep old commits reachable by ID for a while; GitHub Support can purge them. `fix/comtrade-download` is merged and can be deleted.
+  - Phase 3 (the silver fixes) not started; it includes the 3-month smoothing decision.
+  - The other phases will be re-planned (D-030).
+- **Dashboard copy** (`shiny/data/georisk.duckdb`) still has the WGI table and the old tiers until it is next copied from the pipeline database.
+- **Narratives:** 2 of 835 stored narratives mention governance in passing; they change at the next narratives run.
+- **Dashboard redesign:** later, when the owner asks.
+- **Commit:** these changes (LOG, DECISIONS, CLAUDE.md, the two R scripts) are uncommitted; the two CSVs are in `data/` and gitignored.
+
+**Notes for picking this up**
+- **Silver needs the new bronze first:** `compute_silver_comtrade.R` reads `bronze.cmd_meta.manufactured`, which exists only after `ingest_comtrade.R` has run with this change. The pipeline order already does that.
+- **`R/compute_silver_comtrade_3monrollsum.R` doesn't parse** (a stray `==` at line 950 since the initial commit). Nothing sources it.
+
 ### Repo cleanup: stale files archived, WGI removed, legacy branding removed (committed 2026-11-23 as d886405, after the history rewrite; D-001, D-009, D-024, D-026, D-031)
 
 **Task:** Phase 1 hygiene. Move files that nothing uses out of the tracked tree, remove WGI from the pipeline, remove the legacy branding from the working tree, and drop the scratch code from `run_pipeline.R`.
@@ -78,10 +153,11 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 **What failed**
 - **Legacy names in the notes:** the first LOG and DECISIONS wording of the branding pass quoted the old token and helper names. Reworded; describe them as "legacy-named" instead.
+- **Editing a script while Rscript runs it:** day 1 ended with `could not find function "ssage"`. `run_comtrade_update.R` was edited at 19:39 UTC (adding 2013–2014) while the 18:46 run was going, and Rscript reads its script as it goes, so it picked up a shifted line. It struck after the download stopped at its budget, so nothing was lost; the file itself is fine. Don't edit a script that a background Rscript is running.
 
 **Open threads**
-- **Extension download:** running. At 22:11 UTC it was at 376 of about 2,420 country-years (262 ok, 114 no data; 32 countries). Today's run stops at its 478-call budget.
-  - Source `run_comtrade_update.R` once per UTC day until done, around November 28. It includes 2013–2014.
+- **Extension download:** day 1 finished at 22:27 UTC on its 478-call budget: 478 country-years (303 ok, 175 no data; 40 countries), years 2015–2026 only, because the run started before 2013–2014 were added.
+  - Left: 1,598 country-years for 2015–2026 plus 346 for 2013–2014, about 1,944, so four more full days and a short fifth. Source `run_comtrade_update.R` once per UTC day until done, around November 28.
   - Its build steps then run incrementally and pick up the new extension CSVs.
 - **Still to do (D-029):** the USGS and Kimberley price checks.
 - **Forecast plan:**

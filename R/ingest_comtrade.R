@@ -7,13 +7,17 @@
 # -- Source parquet ------------------------------------------------------------
 #   Path: COMTRADE_PARQUET (set in config.R)
 #   Layout: hive-partitioned by iso3c={ISO3C}/yr={YEAR}/
-#   Coverage: 173 countries, 227 active HS codes (core and extension sets,
+#   Coverage: 173 countries, 224 active HS codes (core and extension sets,
 #             D-027, D-029), 2010-present, monthly
 #   Values: constant_value_2024 (deflated with the World Bank MUV index to 2024
 #           US$, D-025); mirrored gaps filled
 #   Broad headings (broad_heading = 1 in the crosswalk: chapters 47 and 72 and
 #   chemical headings) count for exposure only and are left out of every table
 #   here, so they never enter totals or shares (D-029).
+#   Manufactured goods (manufactured = 1: chips, magnets, arms, explosives) are
+#   kept out of the commodity tables too, so they never enter commodity totals,
+#   shares or baskets. They get their own table, comtrade_manufactured_trade
+#   (D-032).
 #
 # -- Output tables -------------------------------------------------------------
 #
@@ -38,6 +42,14 @@
 #   bronze.comtrade_mirror_share
 #     Monthly share of trade value estimated via mirroring (partner-reported flows).
 #     Surfaced on the dashboard as a data-quality transparency indicator.
+#
+#   bronze.comtrade_d4_bilateral
+#     Annual bilateral imports of priced, food and energy commodities (D4 weights)
+#
+#   bronze.comtrade_manufactured_trade
+#     Annual manufactured-goods trade by group (Semiconductors, Magnets, Arms,
+#     Explosives) and flow: value, mirror share, months reported, partner count,
+#     partner HHI and top partner (D-032)
 #
 # -- Design notes --------------------------------------------------------------
 #   All value calculations use constant_value_2024 for cross-year comparability.
@@ -94,23 +106,36 @@ cmd_meta <- read.csv(CROSSWALK_CSV, colClasses = "character") |>
     pink_sheet       = as.integer(pink_sheet),
     broad_heading    = as.integer(coalesce(na_if(broad_heading, ""), "0")),
     conflict_mineral = as.integer(coalesce(na_if(conflict_mineral, ""), "0")),
+    manufactured     = as.integer(coalesce(na_if(manufactured, ""), "0")),  # D-032
     critical_mineral = 0L                               # Comtrade mineral flows tracked via USGS only
   ) |>
   select(cmd_code, commodity_name, pink_sheet, category, subcategory, price_source,
-         price_name, in_data, parent_code, broad_heading, conflict_mineral, critical_mineral)
+         price_name, in_data, parent_code, broad_heading, conflict_mineral, manufactured,
+         critical_mineral)
 dbWriteTable(con, "cmd_meta", cmd_meta, overwrite = TRUE, temporary = TRUE)
 dbWriteTable(con, DBI::Id(schema = "bronze", table = "cmd_meta"),
              cmd_meta, overwrite = TRUE)  # persisted for compute_silver_comtrade.R
 message("  [bronze.cmd_meta] ", nrow(cmd_meta), " commodities persisted")
 
 # Columns are matched by name: partitions written at different times may
-# order them differently. Broad headings are left out (exposure only).
+# order them differently. Broad headings are left out (exposure only), and so
+# are manufactured goods, which have their own view below (D-032).
 dbExecute(con, glue("
   CREATE OR REPLACE VIEW comtrade_raw AS
   SELECT p.*
   FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE) p
   INNER JOIN country_spine_tmp s USING (iso3c)
-  INNER JOIN cmd_meta m ON p.cmd_code = m.cmd_code AND m.broad_heading = 0
+  INNER JOIN cmd_meta m ON p.cmd_code = m.cmd_code
+                       AND m.broad_heading = 0 AND m.manufactured = 0
+  WHERE p.yr >= {START_YR}
+"))
+dbExecute(con, glue("
+  CREATE OR REPLACE VIEW comtrade_manufactured AS
+  SELECT p.*
+  FROM read_parquet('{glob}', hive_partitioning = TRUE, union_by_name = TRUE) p
+  INNER JOIN country_spine_tmp s USING (iso3c)
+  INNER JOIN cmd_meta m ON p.cmd_code = m.cmd_code
+                       AND m.broad_heading = 0 AND m.manufactured = 1
   WHERE p.yr >= {START_YR}
 "))
 n_rows <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM comtrade_raw")$n
@@ -320,8 +345,60 @@ d4_bilateral <- dbGetQuery(con, "
 
 write_bronze(d4_bilateral, "comtrade_d4_bilateral", con)
 
+# -- F. Manufactured Goods (D-032) ----------------------------------------------
+# Chips, magnets, arms and explosives, kept apart from the commodity tables.
+# One row per country, year, flow and group (the crosswalk subcategory).
+# Partner concentration uses constant-dollar values summed over the year.
+
+message("--- Comtrade bronze: manufactured goods ---")
+
+manufactured_trade <- dbGetQuery(con, "
+  WITH base AS (
+    SELECT iso3c, yr, flow_desc, subcategory AS manu_group, partner_iso3c, mon,
+           mirrored, primary_value, constant_value_2024
+    FROM comtrade_manufactured
+    WHERE constant_value_2024 > 0
+  ),
+  totals AS (
+    SELECT iso3c, yr, flow_desc, manu_group,
+      SUM(constant_value_2024) AS value_usd,
+      SUM(primary_value)       AS value_usd_nominal,
+      SUM(CASE WHEN mirrored THEN constant_value_2024 ELSE 0 END) /
+        SUM(constant_value_2024) AS mirror_share,
+      COUNT(DISTINCT mon)      AS n_months
+    FROM base
+    GROUP BY iso3c, yr, flow_desc, manu_group
+  ),
+  by_partner AS (
+    SELECT iso3c, yr, flow_desc, manu_group, partner_iso3c,
+      SUM(constant_value_2024) AS v
+    FROM base
+    WHERE partner_iso3c IS NOT NULL
+    GROUP BY iso3c, yr, flow_desc, manu_group, partner_iso3c
+  ),
+  concentration AS (
+    SELECT p.iso3c, p.yr, p.flow_desc, p.manu_group,
+      COUNT(*)                                   AS n_partners,
+      SUM((p.v / t.value_usd) * (p.v / t.value_usd)) AS partner_hhi,
+      ARG_MAX(p.partner_iso3c, p.v)              AS top_partner,
+      MAX(p.v) / MAX(t.value_usd)                AS top_partner_share
+    FROM by_partner p
+    JOIN totals t USING (iso3c, yr, flow_desc, manu_group)
+    GROUP BY p.iso3c, p.yr, p.flow_desc, p.manu_group
+  )
+  SELECT t.iso3c, t.yr, t.flow_desc, t.manu_group,
+         t.value_usd, t.value_usd_nominal, t.mirror_share, t.n_months,
+         c.n_partners, c.partner_hhi, c.top_partner, c.top_partner_share
+  FROM totals t
+  LEFT JOIN concentration c USING (iso3c, yr, flow_desc, manu_group)
+  ORDER BY t.iso3c, t.yr, t.flow_desc, t.manu_group
+") |> as_tibble()
+
+write_bronze(manufactured_trade, "comtrade_manufactured_trade", con)
+
 # -- Cleanup -------------------------------------------------------------------
 
+dbExecute(con, "DROP VIEW IF EXISTS comtrade_manufactured")
 dbExecute(con, "DROP VIEW IF EXISTS comtrade_raw")
 dbExecute(con, "DROP TABLE IF EXISTS cmd_meta")
 dbExecute(con, "DROP TABLE IF EXISTS country_spine_tmp")
@@ -343,3 +420,5 @@ message(sprintf("  mirror_share:          %d rows (%.1f%% of months have mirror 
 message(sprintf("  d4_bilateral:          %d rows (%d reporter-year-partner links)",
                 nrow(d4_bilateral),
                 nrow(d4_bilateral)))
+message(sprintf("  manufactured_trade:    %d rows (%d countries)",
+                nrow(manufactured_trade), n_distinct(manufactured_trade$iso3c)))
