@@ -77,4 +77,4 @@ The DuckDB file is `data/georisk.duckdb` (`DB_PATH` in `config.R`), with schemas
 - Retire files by moving them to `archive/<date>_<topic>/`, keeping their repo paths; never delete them (D-031). Keep bulk edits (sed, find) out of every `archive/` folder.
 - Plan before changing anything non-trivial, and get approval.
 - Do not commit or push unless explicitly asked.
-- Legacy organization branding is gone from the working tree (D-001); the git-history rewrite is still to do. Do not add organization names, logos or branding. CSS color tokens are `--brand-*`. The project name is in D-024.
+- Legacy organization branding is gone from the files and from git history (D-001, rewritten and force-pushed 2026-11-23). Do not add organization names, logos or branding. CSS color tokens are `--brand-*`. The project name is in D-024.
