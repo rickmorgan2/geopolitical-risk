@@ -35,7 +35,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-003 — Comtrade download design
 - **Date:** 2026-11-20
-- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, committed 2026-11-23. Daily cap raised to 495 on 2026-11-24 (owner), not yet committed.
+- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, committed 2026-11-23. Daily cap raised to 495 on 2026-11-24 (owner), committed in `7798563`.
 - **Context:**
   - Requests listed all ~172 partners explicitly, making URLs about 2,000 characters.
   - Comtrade began rejecting these with HTTP 414. The same URL had worked in March 2026.
@@ -189,7 +189,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-019 — ViEWS as input and benchmark
 - **Date:** 2026-11-20
-- **Status:** Accepted.
+- **Status:** Accepted. Reconfirmed by the owner on 2026-11-25 ("use the ViEWS data"). ViEWS publishes no data license; the owner settles terms with the ViEWS team (D-037).
 - **Decision:**
   - ViEWS's forecast for the same violence type and horizon enters the model with an estimated weight. A history-only fallback covers months without it.
   - Each forecast records which ViEWS run fed it.
@@ -406,7 +406,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-033 — SIPRI arms transfers as a candidate forecast input
 - **Date:** 2026-11-23
-- **Status:** Proposed. The owner asked for a review; adoption waits for the design-doc review.
+- **Status:** Rejected 2026-11-25 (owner). The product is to be sold, and SIPRI's terms allow non-commercial use only. Comtrade arms trade (chapter 93, 8710) stays in `bronze.comtrade_manufactured_trade` (D-032).
 - **Context:** Comtrade chapter 93 and 8710 cover small arms, ammunition and armored vehicles but are under-reported, and several reporters withhold them. SIPRI's Arms Transfers Database covers major conventional weapons from 1950 to 2025 (updated 9 March 2026), measured in trend-indicator values (TIV), a volume measure rather than a price.
 - **Proposal:**
   - Ingest SIPRI TIV by recipient-year (and supplier), lagged to the March release, as an annual input alongside Comtrade arms trade. The two complement each other: SIPRI excludes small arms, ammunition and trucks, which Comtrade covers.
@@ -415,7 +415,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-034 — Headline output: extra conflict risk from external shocks
 - **Date:** 2026-11-23
-- **Status:** Accepted (owner). Supersedes D-018's headline role; D-018's target, horizons and data stand. Design doc revised the same day. No modeling until the owner has reviewed it.
+- **Status:** Accepted (owner). Supersedes D-018's headline role; D-018's target, horizons and data stand. Design doc revised the same day. No modeling until the owner has reviewed it. The exposure window was refined by D-036 (2026-11-25).
 - **Context:** a forecast alone mostly reflects conflict history, where ViEWS is already strong. What this project's commodity data can add is how much external shocks raise each country's risk: the Morgan–Reinhardt thesis.
 - **Decision:**
   - The headline output is the extra risk of organized violence from external economic shocks, per country-month, with a credible interval. It is split by channel (food, fuel, fertilizer, export prices) and comes with scenario stress tests.
@@ -426,3 +426,104 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
   - ViEWS stays an input and the benchmark (D-019). The D-021 soft gate applies to the forecast engine.
   - Interpretable model parts are preferred over black-box ensembles.
   - If shock effects prove small or unidentifiable, the forecast remains a product in its own right.
+
+## D-035 — Network contagion through trade: supplier disruptions and partner demand
+- **Date:** 2026-11-25
+- **Status:** Proposed. The owner asked for this write-up; adoption waits for the design-doc review, like all modeling. The supply route comes first. The demand route follows once the base model passes validation.
+- **Context:**
+  - The owner asked how a price shock to one country's export commodity reaches its trading partners.
+  - D-034's shock part covers world price moves only.
+  - The old D4 score averaged partners' risk by trade weight. Its weights were annual, and its intervals didn't come from posterior draws (review finding C1).
+- **Proposal:**
+  - **Supply route.** A supplier-specific shock δ(s,j), such as one exporter's wheat being disrupted, raises the effective price for each importer c in proportion to its sourcing share m(c,j,s): Δp(c,k) = Σⱼ w(c,k,j) · [Δln p(j) + Σₛ m(c,j,s) · δ(s,j)]. With no supplier shock it reduces to D-034's formula.
+    - A large supplier's disruption also moves the world price. Either the user sets both moves, or a rule scales the world move by the supplier's share of world exports.
+    - Data: the bilateral Comtrade files, already in hand.
+  - **Demand route.** Partner p's revenue shock is S(p) = Σⱼ e(p,j) · Δln p(j). Country c's exposure is C(c) = Σₚ a(c,p) · S(p), where a(c,p) is c's exports to p relative to c's GDP. The shock part gains γ(h) · C(c), estimated with the rest of the model.
+    - Identification is shift-share: world prices hit each partner through export weights fixed in advance.
+    - Data gap: total bilateral trade, either from Comtrade's all-goods total (about 2,400 calls) or from the IMF Direction of Trade Statistics.
+  - **In the app:** an exporter's page gets a "disrupt supply" control for its top three exports. Both terms are computed per draw in the browser.
+- **Validation:**
+  - Each term must show positive out-of-sample CRPS skill over the model without it, and pass a placebo test that reshuffles trade partners.
+  - The baseline includes neighbors' violence, so trade contagion isn't credited with spillovers through refugees, arms or fighting.
+- **Consequences:**
+  - Once validated, this replaces the old D4 network score.
+  - The release adds sourcing shares, and later the partner matrix: a few hundred KB.
+
+## D-036 — Data timing: real-time lags and a lagged exposure window
+- **Date:** 2026-11-25
+- **Status:** Accepted (owner). Written into the design doc's Modeling approach section ("Data timing and lags"). It refines D-034's "exposure fixed in advance".
+- **Context:** Comtrade data arrive months to more than a year late. At the March 2026 download, 16 of 173 reporters had December 2025 and 96 had no 2025 data. A model that needs current-month trade can't be released monthly, and backtests that use later data overstate skill.
+- **Decision:**
+  - Trade enters only through exposure and basket weights, never as a current-month input.
+  - The weights are a three-year average of trade shares, ending two years before the forecast month. They're predetermined, which the shift-share argument needs.
+  - Every other input enters with its real-time delay:
+    - world prices (Pink Sheet, IMF): about one month;
+    - UCDP outcome history: one month (D-021);
+    - ViEWS: the run published before the forecast origin;
+    - buffers: the last actual year, with no projections (D-010).
+  - Each backtest origin uses only data published by then.
+- **Consequences:**
+  - The app's top-three import and export lists come from the same lagged weights, so they change at most once a year.
+  - Partner-reported recent months still feed the data-quality markers (D-013).
+
+## D-037 — A free public tool for now; commercial licensing after beta
+- **Date:** 2026-11-25
+- **Status:** Accepted (owner).
+- **Context:**
+  - The owner first planned to sell the product, then decided it is a public good until it is running and out of beta.
+  - Ownership: the owner owns all prior work this project was built from.
+  - The licensing review checked each source's terms on 2026-11-25 (LOG.md, same date):
+    - **UN Comtrade:** transformed data is free of its copyright, for profit or not. Unchanged records stay restricted.
+    - **UCDP:** CC BY 4.0.
+    - **ViEWS:** publishes no data license.
+    - **IMF (WEO, commodity prices):** commercial reuse needs permission (copyright@imf.org).
+    - **FRED:** its terms bar commercial use and caching.
+    - **World Bank:** WDI is CC BY 4.0. The Pink Sheet states no license, and many of its series come from proprietary vendors.
+    - **SIPRI:** non-commercial only.
+- **Decision:**
+  - Build and release Pressure Points as a free, self-hosted public tool. It does not use Shiny on shinyapps.io.
+  - Review commercial licensing and get permissions after beta, before any sale.
+  - SIPRI is dropped (D-033).
+  - ViEWS and UCDP stay; the owner knows both teams and will share the work with them first.
+- **Consequences:**
+  - **Credit every source** on the site.
+  - **Keep release files to derived values:** estimates, draws, weights and indices, never Comtrade records or vendor prices. A later sale then needs permissions, not a rebuild.
+  - **Before any sale:**
+    - IMF permission;
+    - Pink Sheet terms confirmed with the World Bank;
+    - written terms from ViEWS;
+    - the seven IMF commodity series fetched from the IMF directly instead of FRED.
+
+## D-038 — Crimea is part of Ukraine on every map
+- **Date:** 2026-11-25
+- **Status:** Accepted (owner).
+- **Context:** Natural Earth's de facto country layer, which world-atlas packages, puts Crimea inside Russia's outline at the 110m and 50m scales. The old Shiny dashboard's echarts world map already places Simferopol, Sevastopol and Kerch in Ukraine (checked 2026-11-25).
+- **Decision:**
+  - Every map the project uses or ships shows Crimea as part of Ukraine. It is the only disputed territory that gets special handling; other areas keep the boundary file's default.
+  - A test checks points in Simferopol, Sevastopol and Kerch.
+- **Consequences:**
+  - When world-atlas is used, the Crimea polygon is moved from Russia's geometry into Ukraine's and the line between them dissolved.
+  - The archived prototype has the code and its tests: `archive/scenario/app/src/lib/geo/world.ts` and `world.spec.ts`.
+
+## D-039 — Scenario-tool prototype archived; the dashboard to be rethought
+- **Date:** 2026-11-25
+- **Status:** Accepted (owner). The dashboard design is open again.
+- **Context:**
+  - On 2026-11-25 the owner and Claude planned a scenario tool (plan doc: https://claude.ai/artifact/CJ8s1pgKbdsKqeWdvhgyV4).
+  - Claude built a working prototype on a simulated release. It was a SvelteKit app, with a TypeScript scenario engine tested against an R reference, a map, country and compare pages, and a Methods page.
+  - Choices made along the way:
+    - Users move world prices by channel, or by commodity for a country's top three imports and exports.
+    - A supply-disruption control (D-035).
+    - Adjustable buffers.
+    - The browser computes each scenario from a release of posterior draws.
+    - No accounts or downloads, English only, monthly releases.
+    - A light-gray theme.
+  - After seeing it, the owner said: "I think we need to go back a few steps and think about this dashboard."
+- **Decision:**
+  - Move the prototype to `archive/scenario/` and stop building it. Moved: `app/`, plus `R/export_release_mock.R` and `R/scenario_reference.R`. Two `config.R` paths and a `.gitignore` exception were removed with it.
+  - Rethink the dashboard before building again.
+- **Consequences:**
+  - **Under review, not standing:** the plan doc is marked on hold and kept as a record. The design choices above are under review.
+  - **Still standing:** D-037 and D-038, the light-gray style, and the user list.
+  - **Design doc sections to revisit:** "What users get" and "Requirements from the scenario tool" were written for the scenario tool.
+  - **Restoring the prototype:** `archive/scenario/README.md` explains how.

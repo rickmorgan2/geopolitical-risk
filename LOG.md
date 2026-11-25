@@ -4,9 +4,163 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 ---
 
+## 2026-11-25
+
+### Dashboard: licensing review, scenario-tool plan and prototype, then archived (uncommitted; D-019, D-033, D-035, D-036, D-037, D-038, D-039)
+
+**Task:** plan the dashboard as a self-hosted product, check whether the data allow it, and build a first version. The owner then asked to archive the build and rethink the dashboard.
+
+**What changed**
+- **Product (D-037):** not Shiny on shinyapps.io but a self-contained app the owner hosts.
+  - The owner first meant to sell it, then decided on a free public tool until it is out of beta; licensing is reviewed before any sale.
+  - The owner owns all prior work this project grew from.
+- **Licensing review** (pages read 2026-11-25; quotes in the session):
+
+  | Source | Terms found | For a free public tool | Before a sale |
+  |---|---|---|---|
+  | UN Comtrade | Help Center: transformed data "no longer subject to copyright restrictions", "no distinction between profit and non-profit"; unchanged records stay restricted | Fine, with "Source: UN Comtrade" | Ship derived values only |
+  | IMF (WEO, commodity prices) | Data terms allow derivative works with attribution, but "any potential commercial reuse" needs permission | Fine, with citation | Email copyright@imf.org |
+  | FRED (7 IMF series) | Labeled "Copyrighted: Citation Required"; the full terms bar commercial use without consent and bar caching | Fine, with citation | Take the series from the IMF directly |
+  | World Bank WDI | CC BY 4.0 (catalog) | Fine | Fine |
+  | World Bank Pink Sheet, MUV | No license on the page or in either workbook. The dataset terms default to CC BY 4.0 but restrict third-party series. The workbook credits Bloomberg (about 55 series), Refinitiv (15), S&P Global (11), Oil World (11), ISTA Mielke (11) and Platts (8) | Fine as model inputs | Confirm with the Bank |
+  | UCDP | CC BY 4.0, cite the listed papers; API 5,000 requests a day with a token | Fine | Fine |
+  | ViEWS | No data license on its site or API; code is MIT | Owner handles | Written terms |
+  | SIPRI | Non-commercial only | Dropped (D-033) | — |
+- **SIPRI dropped (D-033 rejected).** Its row was removed from the design doc (rev 78).
+- **Crimea (D-038).** The old dashboard's echarts world map already puts Simferopol, Sevastopol and Kerch in Ukraine. world-atlas (Natural Earth's de facto layer) puts them in Russia at the 110m and 50m scales.
+- **Domains** (registry RDAP, 2026-11-25):
+  - pressure-points.org, pressurepoints.app, .io, .world, .global and .dev were unregistered.
+  - pressurepoints.com is parked with Afternic, so it is probably for sale.
+  - pressurepoints.org, .net and .info, and pressure-points.com, are taken.
+  - Alternatives with free domains: Strainpoint (.com, .org, .app), Kindling Index (.com, .org, .app), Shock Atlas (.org, .app).
+- **Scenario tool plan** ([plan doc](https://claude.ai/artifact/CJ8s1pgKbdsKqeWdvhgyV4)):
+  - Users: analysts, researchers, desk officers, journalists, business professionals, government planners and policy wonks.
+  - Screens and wireframes.
+  - The release contract.
+  - The stack: SvelteKit, Observable Plot, a Web Worker, a static host.
+  - Phases.
+  - Its open questions, answered by the owner:
+    - Release files stay app internals; there are no downloads for now.
+    - Users can vary buffers.
+    - English only; monthly releases; no accounts.
+    - Both input modes, with commodity sliders only for a country's top three imports and exports.
+    - A supply-disruption control.
+    - A light gray theme.
+  - The owner first asked that no data leave the app, then withdrew that the same day, so the browser computes each scenario.
+  - Now marked on hold at its top.
+- **Design doc** (rev 78 → 85):
+  - The SIPRI row is removed.
+  - "Proposed: contagion through trade (D-035)".
+  - "What users get" is rewritten around the scenario tool, and Alerts dropped.
+  - "Requirements from the scenario tool".
+  - "Data timing and lags (D-036)".
+  - A licensing note under the data sources, and a Rollout link to the plan.
+  - Risks: "primary user" and "commercial use" ticked; new questions on the exposure window (now decided), food inflation and currency depreciation, and D-035.
+- **DECISIONS.md:**
+  - D-033 rejected; D-035 proposed; D-036, D-037, D-038 and D-039 accepted.
+  - D-019 notes the owner's go-ahead on ViEWS.
+  - D-034 notes D-036.
+  - D-003's status now says committed.
+- **Prototype, then archived (D-039).** The owner installed Node v26.13.1 and npm 11.20.
+  - **Built in `app/`:**
+    - A SvelteKit 3 app on a simulated release from `R/export_release_mock.R`: random numbers, a fixed seed, 174 real countries, 400 draws, 4.8 MB.
+    - A TypeScript scenario engine with an exact Shapley split by channel, run in a Web Worker.
+    - `R/scenario_reference.R`, the same math in R, writing golden files.
+    - Scenario state carried in the URL.
+    - A map with the Crimea fix.
+    - Scenario, country, compare and methods pages.
+  - **Checks:**
+    - 20 of 20 tests passed. The engine matched R within 1e-6 percentage points on 4 scenarios × 15 countries. The bridge identity held: normal-price risk plus channel parts equals scenario risk.
+    - Svelte-check found 0 errors, and the static build was 5.3 MB.
+    - Screenshots of every page were taken at desktop and phone width.
+  - **Moved** to `archive/scenario/` (`app/` and the two R scripts), with a README on how to restore it.
+  - `config.R` and `.gitignore` are back to their committed state; restoring the prototype needs their two lines back.
+
+**Why / decisions**
+- **Derived values only:** release files hold estimates, draws, weights and indices, never Comtrade records or vendor prices. A later sale then needs permissions, not a rebuild (D-037).
+- **Lagged trade weights (D-036):** Comtrade's delays can't then hold up a monthly release. Weights fixed before the shock also suit the shift-share argument.
+- **D-035 supply route first:** its data is in hand. The demand route needs total bilateral trade, either Comtrade's all-goods total (about 2,400 calls) or IMF trade-direction data.
+- **The prototype's design choices** are listed in D-039. They are under review with the rest of the dashboard.
+
+**What failed**
+- **Vitest from a lowercase `c:\` working directory** loads itself twice, and every test fails with "Cannot read properties of undefined (reading 'config')". Running from `C:\...` works; changing directory inside `vite.config.ts` is too late.
+- **Headless Edge `--screenshot` with `--virtual-time-budget`** stalled the Web Worker; the page stayed on "Loading the release…". Driving Edge over the DevTools protocol (a small Node script) worked, and caught console errors.
+- **SvelteKit 3 navigation API:**
+  - `replaceState` is deprecated.
+  - `goto` no longer takes `keepFocus` or `noScroll`.
+  - The fix: `goto(url, { state, shallow: true, replace: true, reset: false })`.
+- **A long-running dev server**, after many edits and a build, showed wrong slider values (0% for preset moves). A fresh build showed the right ones.
+- **The root `.gitignore` ignores `*.html`**, which would drop a SvelteKit app's `src/app.html`. Any future app needs the exception.
+- **Lookups:**
+  - rdap.org rate-limited after about 10 lookups (HTTP 429), so the registries' own RDAP servers were used.
+  - DNS is no guide to registration: pressure-points.com is registered but has no name servers.
+  - The World Bank summary-terms page returned 403, and no Pink Sheet license was found anywhere.
+
+**Open threads**
+- **Extension download:** 955 country-years left. Source `run_comtrade_update.R` once per UTC day:
+  - November 26: 495 calls, about 4 hours.
+  - November 27: about 460 calls, then the build steps run on their own.
+- **Dashboard rethink (owner, D-039).**
+  - The plan doc is on hold, and the prototype is in `archive/scenario/`.
+  - Afterwards, revisit the design doc's "What users get" and "Requirements from the scenario tool".
+  - Domain or name still to choose. Consider registering pressure-points.org and pressurepoints.app; run a trademark search first.
+- **Design doc review (owner):** the gate for all modeling. Its open questions:
+  - the go/no-go threshold (proposed);
+  - food inflation and currency depreciation in the shock part;
+  - D-035 adoption, and which data for its demand route.
+- **Before any sale (D-037):**
+  - IMF permission;
+  - Pink Sheet terms;
+  - ViEWS written terms (owner);
+  - the IMF commodity series from the IMF instead of FRED.
+- **Live database:** bronze and silver pick up D-032 and the retired codes at the next `ingest_comtrade.R` and `compute_silver_comtrade.R` run (the build steps after the downloads finish).
+- **Manufactured features:** arms-import surges and chip-supplier dependence wait for the design-doc review.
+- **Still to do (D-029):** the USGS and Kimberley price checks.
+- **Forecast plan:**
+  - The UCDP Candidate and ViEWS refresh routines, and the country-month panel.
+  - V-Dem is deferred (D-026).
+  - The owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
+- **Remediation:**
+  - The `.env` key rename is resolved: the owner confirmed only `COMTRADE_API_KEY` remains.
+  - The 3-month-smoothing script waits for the Phase 3 decision.
+  - `fix/comtrade-download` is merged and can be deleted.
+  - Phase 3 not started; other phases re-planned (D-030).
+- **Dashboard copy, narratives:** the Shiny copy still has the WGI table and the old tiers until it is next copied. 2 of 835 stored narratives mention governance in passing.
+- **Commit:** uncommitted: DECISIONS.md, LOG.md, CLAUDE.md. `archive/` is gitignored, so the prototype stays local.
+
+**Notes for picking this up**
+- **Restoring the prototype:** `archive/scenario/README.md` explains how. Reusable parts:
+  - the R-reference golden tests;
+  - the Crimea fix and its test (`app/src/lib/geo/world.ts`);
+  - the URL codec.
+- **Screenshot script:** the DevTools one lived in the session scratchpad and won't survive a reboot. The memory note on the local toolchain describes the approach.
+
+### Extension download day 3 (no repo changes; D-027)
+
+**Task:** day 3 of the extension-code download.
+
+**What changed**
+- **Run:** `run_comtrade_update.R`, 01:58–05:45 UTC on November 25, exit 0, 495 calls. 311 with data, 184 no data, 0 errors.
+- **Covered:** HRV 2019 onward, then Haiti through Mali. Mali has 11 of its 14 years.
+
+  | Extension manifest | Nov 23 | Nov 24 | Nov 25 | Total |
+  |---|---|---|---|---|
+  | Calls made | 478 | 495 | 495 | 1,468 |
+  | With data | 303 | 340 | 311 | 954 |
+  | No data reported | 175 | 154 | 184 | 513 |
+  | Errors outstanding | 0 | 0 | 0 | 0 |
+
+  104 of 173 countries are complete, 954 CSVs are in `data/comtrade_csv_ext/`, and 955 country-years are left. Every country-year still took one call; the largest file is still DEU 2025.
+
+**What failed**
+- **Session closed by accident** about 8 minutes into the run. The R process and the shell that launched it both survived, and the run finished normally; a watcher on the R process reported the end.
+
+**Open threads**
+- In the entry above.
+
 ## 2026-11-24
 
-### Extension download day 2; daily cap raised to 495 (uncommitted; D-003, D-027)
+### Extension download day 2; daily cap raised to 495 (committed in 7798563; D-003, D-027)
 
 **Task:** continue the extension-code download (D-027), and set the daily cap so it finishes on day 5.
 
@@ -44,7 +198,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 - **Forecast plan:** UCDP Candidate and ViEWS refresh routines and the country-month panel; V-Dem deferred (D-026); owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
 - **Remediation:** Phase 1: the `.env` key rename (owner), and the 3-month-smoothing script after the Phase 3 decision; `fix/comtrade-download` is merged and can be deleted. Phase 3 not started. Other phases re-planned (D-030).
 - **Dashboard copy** still has the WGI table and the old tiers until it is next copied; **narratives:** 2 of 835 mention governance in passing; **dashboard redesign:** later, when the owner asks.
-- **Commit:** uncommitted: CLAUDE.md, DECISIONS.md, LOG.md (the 2026-11-23 headline entry and this one), `R/ingest_comtrade_download.R`, README.md.
+- **Commit:** these changes, with the 2026-11-23 headline entry's, are in `7798563`.
 
 **Notes for picking this up**
 - The manifest keeps one row per country-year, so a retried error replaces its row and the failed call drops out of the day's count: the manifest shows 494 calls on November 24, but 495 were made. Same-day retries can push the real count a call or two above the cap; the 5-call margin under 500 covers that.
@@ -52,7 +206,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 ## 2026-11-23
 
-### Headline reframed: extra conflict risk from external shocks (uncommitted; D-018, D-034)
+### Headline reframed: extra conflict risk from external shocks (committed in 7798563; D-018, D-034)
 
 **Task:** make the extra risk of violence from external economic shocks the project's goal, with the forecast as its engine and validation.
 
@@ -80,7 +234,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 - **Forecast plan:** UCDP Candidate and ViEWS refresh routines and the country-month panel; V-Dem deferred (D-026); owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
 - **Remediation:** Phase 1: the `.env` key rename (owner), and the 3-month-smoothing script after the Phase 3 decision; `fix/comtrade-download` is merged and can be deleted. Phase 3 not started. Other phases re-planned (D-030).
 - **Dashboard copy** still has the WGI table and the old tiers until it is next copied; **narratives:** 2 of 835 mention governance in passing; **dashboard redesign:** later, when the owner asks.
-- **Commit:** only this entry's edits (LOG.md, DECISIONS.md, CLAUDE.md) are uncommitted; everything earlier is in `725ba33` on GitHub `main`.
+- **Commit:** this entry's edits (LOG.md, DECISIONS.md, CLAUDE.md) are in `7798563`; everything earlier is in `725ba33`.
 
 ### Manufactured goods kept apart; health codes retired; SIPRI arms transfers reviewed (committed in 725ba33; D-029, D-032, D-033)
 

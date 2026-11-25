@@ -41,6 +41,8 @@ shiny/                     dashboard (global.R, ui.R, server.R, www/)
 tests/testthat/            offline tests (no network, no data/)
 ```
 
+The dashboard is being rethought (D-039). Its replacement will be a self-hosted, free public app, not Shiny on shinyapps.io (D-037). A scenario-tool prototype was built and archived on 2026-11-25. It lives in `archive/scenario/` (gitignored; see its README). Don't restore or extend it unless the owner asks.
+
 The DuckDB file is `data/georisk.duckdb` (`DB_PATH` in `config.R`), with schemas `bronze`, `silver` and `gold`. `data/` is gitignored and large (~17 GB with the Comtrade CSVs). The app reads a separate copy at `shiny/data/georisk.duckdb`.
 
 ## Running things
@@ -69,6 +71,9 @@ The DuckDB file is `data/georisk.duckdb` (`DB_PATH` in `config.R`), with schemas
 - **Spelling:** American English in all project text: docs, comments, logs, the design doc. Never respell code identifiers or source data values; `summarise()` and Pink Sheet series names stay as they are.
 - **Secrets:** API keys live in `.env`, which is gitignored. Never print, read out, or edit `.env`.
 - **Database inspection:** query a scratch copy of the DuckDB file in read-only mode, so you never lock or alter the live database.
+- **Maps:** Crimea is part of Ukraine on every map, checked by a test. It is the only disputed territory that gets special handling (D-038).
+- **Dashboard style:** light theme on a gray page with white panels; no dark backgrounds.
+- **Data use:** credit every source; anything a public app ships holds derived values only, never Comtrade records or vendor prices (D-037).
 
 ## Working rules from the owner
 
