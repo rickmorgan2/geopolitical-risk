@@ -201,7 +201,7 @@ mkdir -p data
    Step 0c joins Pink Sheet and IMF PCPS commodity prices into the parquet in-place.
 
    Free API tier: 500 calls/day. 173 countries x 2 commodity chunks = 346 calls per year of data. Full history (2010-present) takes approximately 11 days.
-   Rerunning `run_comtrade_download()` resumes where the last run stopped (it stops at 480 calls a day or on a quota error). Closed years are not re-requested; the current and previous year are re-downloaded once their files are more than 30 days old, because Comtrade keeps adding months. `dry_run = TRUE` shows what a run would do without calling the API.
+   Rerunning `run_comtrade_download()` resumes where the last run stopped (it stops at 495 calls a day or on a quota error). Closed years are not re-requested; the current and previous year are re-downloaded once their files are more than 30 days old, because Comtrade keeps adding months. `dry_run = TRUE` shows what a run would do without calling the API.
 
    **Option B -- Copy existing data** from a prior run or shared storage:
    ```bash

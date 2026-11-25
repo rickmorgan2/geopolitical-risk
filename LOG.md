@@ -4,9 +4,85 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 
 ---
 
+## 2026-11-24
+
+### Extension download day 2; daily cap raised to 495 (uncommitted; D-003, D-027)
+
+**Task:** continue the extension-code download (D-027), and set the daily cap so it finishes on day 5.
+
+**What changed**
+- **Day 2 run** (`run_comtrade_update.R`, 01:15–05:10 UTC, exit 0): 480 calls.
+  - Steps 1–6 found nothing to do; the World totals check matched again without new calls.
+  - Step 6b: 333 ok, 146 no data, 1 error (ESP 2022, HTTP 500). It covered 2013–2014 for day 1's 40 countries, every year for CUB through GRC, and HND 2013–2018.
+- **Daily cap 480 → 495** (owner, so the download ends on day 5): `DAILY_CALL_BUDGET` in `R/ingest_comtrade_download.R`; the README line follows. A no-call preview showed 1,465 left and 15 calls left today; offline tests 223 pass, 0 fail.
+- **Second run on today's 15 calls** (18:43–18:51 UTC, exit 0): the ESP 2022 retry succeeded (35,901 rows, 12 months); HND 2019–2026 no data; HRV 2013–2018 ok.
+
+  | Extension manifest | Nov 23 | Nov 24 | Total |
+  |---|---|---|---|
+  | Calls made | 478 | 495 | 973 |
+  | With data | 303 | 340 | 643 |
+  | No data reported | 175 | 154 | 329 |
+  | Errors outstanding | 0 | 0 | 0 |
+
+  70 countries started; 643 CSVs in `data/comtrade_csv_ext/`. Every country-year took one call; the largest file is DEU 2025 (56,796 rows), well under the 100k cap.
+- **LOG:** the 2026-11-23 manufactured-goods entry's Commit thread now says `725ba33`.
+
+**Why / decisions**
+- After day 2, 1,465 were left: just over three days at 480 (1,440). At 495, days 3–5 give 1,485, so 35 spare after today's 15, for retries or a file that needs a second call.
+- 495 stays 5 under the free tier's 500; a quota error (429) stops the run cleanly, and the all-or-nothing file write loses nothing.
+
+**What failed**
+- ESP 2022 got HTTP 500 (a Comtrade server error) on day 2; the same-day retry worked.
+
+**Open threads**
+- **Extension download:** 1,450 country-years left, from HRV 2019. Source `run_comtrade_update.R` once per UTC day on November 25, 26 and 27 (495 calls, about 4 hours each). The build steps run on their own after the November 27 run.
+- **Design doc review (owner):** the gate for all modeling. Still describing the forecast as the product, and due for revision after the review: "What users get" and "Modeling approach". The new go/no-go row's threshold is a proposal.
+- **Live database:** bronze and silver pick up D-032 and the retired codes at the next `ingest_comtrade.R` and `compute_silver_comtrade.R` run (the build steps after the downloads finish).
+- **SIPRI (D-033):** decided after the design-doc review; open questions are the commercial-use status, deliveries versus orders, and smoothing.
+- **Manufactured features:** arms-import surges and chip-supplier dependence wait for the design-doc review.
+- **Still to do (D-029):** the USGS and Kimberley price checks.
+- **Forecast plan:** UCDP Candidate and ViEWS refresh routines and the country-month panel; V-Dem deferred (D-026); owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
+- **Remediation:** Phase 1: the `.env` key rename (owner), and the 3-month-smoothing script after the Phase 3 decision; `fix/comtrade-download` is merged and can be deleted. Phase 3 not started. Other phases re-planned (D-030).
+- **Dashboard copy** still has the WGI table and the old tiers until it is next copied; **narratives:** 2 of 835 mention governance in passing; **dashboard redesign:** later, when the owner asks.
+- **Commit:** uncommitted: CLAUDE.md, DECISIONS.md, LOG.md (the 2026-11-23 headline entry and this one), `R/ingest_comtrade_download.R`, README.md.
+
+**Notes for picking this up**
+- The manifest keeps one row per country-year, so a retried error replaces its row and the failed call drops out of the day's count: the manifest shows 494 calls on November 24, but 495 were made. Same-day retries can push the real count a call or two above the cap; the 5-call margin under 500 covers that.
+- Run logs are in the session scratchpad (`comtrade_ext_day2.log`, `comtrade_ext_day2b.log`) and won't survive a reboot; the manifest is the durable record.
+
 ## 2026-11-23
 
-### Manufactured goods kept apart; health codes retired; SIPRI arms transfers reviewed (uncommitted; D-029, D-032, D-033)
+### Headline reframed: extra conflict risk from external shocks (uncommitted; D-018, D-034)
+
+**Task:** make the extra risk of violence from external economic shocks the project's goal, with the forecast as its engine and validation.
+
+**What changed**
+- **D-034 (accepted, owner):** the headline output is the extra risk of organized violence from external economic shocks, per country-month, with a credible interval, split by channel (food, fuel, fertilizer, export prices), plus scenario stress tests. D-018's status now says its headline role is superseded; its target, horizons and data stand.
+- **CLAUDE.md:** the headline paragraph now describes the extra-risk goal, the forecast as engine and check, D2 and D3 as exposure and D1 as buffers.
+- **Memory:** `project-direction` updated (description, the shift and why, the forecast kept as fallback); the MEMORY.md index line follows.
+- **Design doc (rev 70 → 77), Summary, Goals and Validation only:**
+  - Summary: the lead sentence and the "one question" sentence now state the extra-risk goal; a new first bullet, "The headline is the extra risk from shocks."
+  - Goals: success means an analyst sees how much shocks add, by channel, and the estimate passes Validation. Goals list rewritten, extra risk first and the forecast as "the engine". Two non-goals reworded: ViEWS is the benchmark for the forecast engine; causal readings only where prices are outside a country's control and weights are fixed in advance.
+  - Validation: a new lead (the extra risk can't be checked against outcomes directly); a fourth nested model, without the shock terms, so the key comparison is (4) against (3); new items for placebo tests, simulation recovery and exogeneity; a criterion row, "CRPS skill over the same model without shock terms", threshold marked **proposed** (above zero at horizons 3–24 for at least one violence type).
+
+**Why / decisions**
+- The forecast alone mostly reflects conflict history, where ViEWS is already strong; the commodity data's value is the shock attribution (the Morgan–Reinhardt thesis). The forecast stays because the extra risk is computed from it, its out-of-sample skill is the only outside check, and it is the fallback product if shock effects prove small.
+- ViEWS already enters the design as an input with a nested comparison, so the reframing extends that rather than reopening D-019.
+- Known episodes for checks must fall inside the data window (2015 on, 2013–2014 burn-in): the 2014–15 oil collapse and the 2022 spike qualify; the 2007–08 and 2010–11 food spikes do not.
+
+**Open threads**
+- **Design doc review (owner):** the gate for all modeling. Still describing the forecast as the product, and due for revision after the review: "What users get" and "Modeling approach". The new go/no-go row's threshold is a proposal.
+- **Live database:** bronze and silver pick up D-032 and the retired codes at the next `ingest_comtrade.R` and `compute_silver_comtrade.R` run (the build steps after the downloads finish).
+- **SIPRI (D-033):** decided after the design-doc review; open questions are the commercial-use status, deliveries versus orders, and smoothing.
+- **Manufactured features:** arms-import surges and chip-supplier dependence wait for the design-doc review.
+- **Extension download:** day 1 done (478 country-years); about 1,944 left. Source `run_comtrade_update.R` once per UTC day from 00:00 UTC on November 24 until done, around November 28. Its build steps then run incrementally.
+- **Still to do (D-029):** the USGS and Kimberley price checks.
+- **Forecast plan:** UCDP Candidate and ViEWS refresh routines and the country-month panel; V-Dem deferred (D-026); owner to ask the ViEWS team for pre-2021 forecasts and 2016–2021 backcasts.
+- **Remediation:** Phase 1: the `.env` key rename (owner), and the 3-month-smoothing script after the Phase 3 decision; `fix/comtrade-download` is merged and can be deleted. Phase 3 not started. Other phases re-planned (D-030).
+- **Dashboard copy** still has the WGI table and the old tiers until it is next copied; **narratives:** 2 of 835 mention governance in passing; **dashboard redesign:** later, when the owner asks.
+- **Commit:** only this entry's edits (LOG.md, DECISIONS.md, CLAUDE.md) are uncommitted; everything earlier is in `725ba33` on GitHub `main`.
+
+### Manufactured goods kept apart; health codes retired; SIPRI arms transfers reviewed (committed in 725ba33; D-029, D-032, D-033)
 
 **Task:** decide what 3002 was for, keep chips, magnets, arms and explosives out of commodity totals without losing them (option 2), and look into SIPRI arms transfer data.
 
@@ -75,7 +151,7 @@ Dated entries, newest first. Decisions live in DECISIONS.md; this file records w
 - **Dashboard copy** (`shiny/data/georisk.duckdb`) still has the WGI table and the old tiers until it is next copied from the pipeline database.
 - **Narratives:** 2 of 835 stored narratives mention governance in passing; they change at the next narratives run.
 - **Dashboard redesign:** later, when the owner asks.
-- **Commit:** these changes (LOG, DECISIONS, CLAUDE.md, the two R scripts) are uncommitted; the two CSVs are in `data/` and gitignored.
+- **Commit:** these changes (LOG, DECISIONS, CLAUDE.md, the two R scripts) are in `725ba33`; the two CSVs are in `data/` and gitignored.
 
 **Notes for picking this up**
 - **Silver needs the new bronze first:** `compute_silver_comtrade.R` reads `bronze.cmd_meta.manufactured`, which exists only after `ingest_comtrade.R` has run with this change. The pipeline order already does that.

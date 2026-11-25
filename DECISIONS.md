@@ -35,7 +35,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-003 — Comtrade download design
 - **Date:** 2026-11-20
-- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, committed 2026-11-23.
+- **Status:** Accepted. Implemented in `R/ingest_comtrade_download.R`, committed 2026-11-23. Daily cap raised to 495 on 2026-11-24 (owner), not yet committed.
 - **Context:**
   - Requests listed all ~172 partners explicitly, making URLs about 2,000 characters.
   - Comtrade began rejecting these with HTTP 414. The same URL had worked in March 2026.
@@ -48,7 +48,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
   - Write each country-year in one piece (temp file + rename) once every call succeeds.
   - Record outcomes in `data/comtrade_download_manifest.csv`.
   - Skip closed years once `ok` or `no_data`. Refresh the current and previous year after 30 days.
-  - Stop cleanly at 480 calls a day, or on HTTP 401/403/429.
+  - Stop cleanly at a daily cap of 480 calls (495 from 2026-11-24), or on HTTP 401/403/429.
 - **Consequences:**
   - The entry point is `run_comtrade_download(years, ...)`.
   - The old `download_comtrade_data()` now only points to the new function.
@@ -177,7 +177,7 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
 
 ## D-018 — Forecast target: UCDP organized violence
 - **Date:** 2026-11-20
-- **Status:** Accepted.
+- **Status:** Accepted. Its headline role is superseded by D-034 (2026-11-23): the forecast is now the engine and the validation for the extra-risk estimate. Target, horizons and data stand.
 - **Decision:** Forecast UCDP fatalities per country-month for all three violence types: state-based, non-state and one-sided.
   - Each forecast is a full predictive distribution. The probabilities of 1+, 25+ and 100+ deaths are derived from it.
   - Horizons run from 1 to 36 months.
@@ -412,3 +412,17 @@ Newest entries at the bottom. Reference them by ID (e.g. D-003) in code comments
   - Ingest SIPRI TIV by recipient-year (and supplier), lagged to the March release, as an annual input alongside Comtrade arms trade. The two complement each other: SIPRI excludes small arms, ammunition and trucks, which Comtrade covers.
   - Download through the public CSV exports behind armstransfers.sipri.org, or ask SIPRI for bulk access. Keep the raw files in `data/` (gitignored); publish only derived features, with citation.
 - **Open questions:** whether the project counts as non-commercial under SIPRI's terms; whether to use deliveries or orders; whether to smooth single-year TIV, which is lumpy.
+
+## D-034 — Headline output: extra conflict risk from external shocks
+- **Date:** 2026-11-23
+- **Status:** Accepted (owner). Supersedes D-018's headline role; D-018's target, horizons and data stand. Design doc revised the same day. No modeling until the owner has reviewed it.
+- **Context:** a forecast alone mostly reflects conflict history, where ViEWS is already strong. What this project's commodity data can add is how much external shocks raise each country's risk: the Morgan–Reinhardt thesis.
+- **Decision:**
+  - The headline output is the extra risk of organized violence from external economic shocks, per country-month, with a credible interval. It is split by channel (food, fuel, fertilizer, export prices) and comes with scenario stress tests.
+  - The forecast stays, as the engine and the validation. Extra risk = predicted risk minus predicted risk with shocks at normal levels, computed for each posterior draw.
+  - Model: a structured Bayesian model with a baseline part (conflict history, structural inputs, ViEWS as in D-019) and a shock part (world price changes times exposure weights fixed in advance, moderated by buffers). D2 and D3 measure exposure; D1 measures buffers (D-020).
+  - Validation adds to D-021 and D-022: forecast skill with and without the shock terms, placebo tests, simulation recovery, known episodes, and checks without the commodities a country is big enough to price itself.
+- **Consequences:**
+  - ViEWS stays an input and the benchmark (D-019). The D-021 soft gate applies to the forecast engine.
+  - Interpretable model parts are preferred over black-box ensembles.
+  - If shock effects prove small or unidentifiable, the forecast remains a product in its own right.

@@ -94,7 +94,8 @@ set_primary_comtrade_key(COMTRADE_API_KEY)
 
 COMMODITY_CHUNK_SIZE <- 87     # codes per API call (2 chunks for 174 codes)
 API_RATE_LIMIT       <- 500    # free tier: 500 calls per day
-DAILY_CALL_BUDGET    <- 480    # stop below the limit so no country-year is left half-done
+DAILY_CALL_BUDGET    <- 495    # stop below the limit so no country-year is left half-done
+                               # (480 until 2026-11-24; raised so the extension download ends on day 5)
 MAX_ROWS_PER_CALL    <- 1e5    # free-tier row cap; a call returning this many is truncated
 REFRESH_RECENT_YEARS <- 2L     # the current and previous calendar year are refreshed...
 REFRESH_AFTER_DAYS   <- 30L    # ...once their last download is older than this

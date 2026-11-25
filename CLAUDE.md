@@ -13,7 +13,7 @@ An R pipeline that scores ~175 countries on four dimensions of economic risk and
 
 Scores come from Bayesian models (brms / Stan), then go through tiers, change signals and LLM-written narratives.
 
-The headline output is becoming a forecast of UCDP organized violence per country-month, 1–36 months ahead, benchmarked against ViEWS (D-018 to D-022). The four dimensions become its economic inputs. The plan is in the design doc (https://claude.ai/artifact/NENMJC2hgoaRMhU16RCQP1); no forecast modeling starts until the owner has reviewed it.
+The headline output is the extra risk of organized violence that external economic shocks add, per country-month, with a credible interval and split by channel: food, fuel, fertilizer and export prices (D-034). Underneath sits a forecast of UCDP organized violence, 1–36 months ahead, benchmarked against ViEWS (D-018 to D-022). It is the engine that computes the extra risk and the check that the estimate is believable. D2 and D3 measure exposure; D1 measures buffers. The plan is in the design doc (https://claude.ai/artifact/NENMJC2hgoaRMhU16RCQP1); no forecast modeling starts until the owner has reviewed it.
 
 The core idea, from the owner's earlier research (the Morgan–Reinhardt commodity paper at the repo root): price volatility in a country's import and export baskets raises the risk of instability.
 
